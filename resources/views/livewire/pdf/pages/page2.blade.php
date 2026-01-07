@@ -41,15 +41,15 @@
                         <div style="font-size: 10pt; font-weight: 300;">Company Code : 81245</div>
                     </td>
                     <td class="text-right" style="vertical-align: top; width: 180px; border: none; padding-right: 5mm;">
-                        <div class="font-bold">ส่วนที่ {{ $part }} (สำหรับ{{ $part == 1 ? 'นักเรียน' : 'ธนาคาร' }})</div>
-                        <div>ภาคเรียนที่ {{ $semester }} ปีการศึกษา {{ $year }}</div>
+                        <div class="font-bold" style="font-size: 10pt;">ส่วนที่ {{ $part }} (สำหรับ{{ $part == 1 ? 'นักเรียน' : 'ธนาคาร' }})</div>
+                        <div style="font-size: 9pt;">ภาคเรียนที่ {{ $semester }} ปีการศึกษา {{ $year }}</div>
                     </td>
                 </tr>
             </table>
 
-            <div style="margin: 5px 0;">ชื่อ - นามสกุลนักเรียน : {{ $student_name ?? '................................................................................................' }}</div>
+            <div style="margin: 5px 0; font-size: 9pt;">ชื่อ - นามสกุลนักเรียน : {{ $student_name ?? '................................................................................................' }}</div>
             
-            <div style="margin-bottom: 5px;">
+            <div style="margin-bottom: 5px; font-size: 9pt;">
                 รหัสประจำตัวสอบ (Ref.1) : 
                 <div class="page2-ref-container">
                     @php $s_code = str_pad($student_code ?? '', 13, ' ', STR_PAD_RIGHT); @endphp
@@ -59,7 +59,7 @@
                 </div>
             </div>
 
-            <div style="margin-bottom: 5px;">
+            <div style="margin-bottom: 5px; font-size: 9pt;">
                 รหัสกลุ่ม (Ref.2) : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <div class="page2-ref-container">
                     @php $g_code = str_pad($group_code ?? '', 6, ' ', STR_PAD_RIGHT); @endphp
