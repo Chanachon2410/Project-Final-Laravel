@@ -29,18 +29,18 @@
 
 <div class="pdf-page page2-container">
     @for($part = 1; $part <= 2; $part++)
-        <div style="position: relative; box-sizing: border-box; padding-bottom: 10mm; border-bottom: {{ $part == 1 ? '1px dashed #000' : 'none' }}; margin-bottom: 5mm;">
+        <div style="border: 1px solid #000; padding: 4mm; position: relative; box-sizing: border-box; margin-bottom: 2mm;">
             <table class="w-full" style="border: none;">
                 <tr style="border: none;">
                     <td style="width: 60px; vertical-align: top; border: none;">
                         <img src="{{ ($isPdf ?? false) ? public_path('images/logo (1).png') : asset('images/logo (1).png') }}" alt="Logo" style="width: 60px; height: auto;">
                     </td>
-                    <td class="text-center" style="border: none;">
+                    <td class="text-center" style="border: none; padding-left: 0mm;">
                         <div style="font-size: 14pt; font-weight: 300;">ใบแจ้งการชำระเงินค่าบำรุงการศึกษา</div>
                         <div style="font-size: 12pt; font-weight: 300;">วิทยาลัยอาชีวศึกษานครปฐม</div>
                         <div style="font-size: 10pt; font-weight: 300;">Company Code : 81245</div>
                     </td>
-                    <td class="text-right" style="vertical-align: top; width: 180px; border: none;">
+                    <td class="text-right" style="vertical-align: top; width: 180px; border: none; padding-right: 5mm;">
                         <div class="font-bold">ส่วนที่ {{ $part }} (สำหรับ{{ $part == 1 ? 'นักเรียน' : 'ธนาคาร' }})</div>
                         <div>ภาคเรียนที่ {{ $semester }} ปีการศึกษา {{ $year }}</div>
                     </td>
@@ -138,12 +138,15 @@
                     <td class="text-right" style="vertical-align: bottom; border: none;">
                         <div style="border: 1px solid #000; padding: 5px; text-align: center; width: 200px; float: right;">
                             สำหรับเจ้าหน้าที่ธนาคาร<br><br>
-                            ............................................................
+                            ...............................................
                         </div>
                     </td>
                 </tr>
             </table>
         </div>
+        @if($part == 1)
+            <div style="border-bottom: 1px dashed #000; margin: 5mm 0;"></div>
+        @endif
     @endfor
     <div class="text-center" style="font-size: 9pt;">
         *** ชำระเงินได้ระหว่างวันที่ {{ $payment_start_date ?? '...' }} - {{ $payment_end_date ?? '...' }} ณ ธนาคารกรุงไทย ทุกสาขาทั่วประเทศ ***
