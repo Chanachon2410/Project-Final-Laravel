@@ -19,7 +19,7 @@
 /storage/*.key
 /storage/pail
 /vendor
+/Prompt
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/Prompt/
