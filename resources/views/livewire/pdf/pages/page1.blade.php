@@ -54,6 +54,5 @@
     </table>
 
     <div class="text-center font-bold footer-note">
-        *หมายเหตุ ค่าธรรมเนียมจ่ายผ่านธนาคาร 10 บาท
     </div>
 </div>
