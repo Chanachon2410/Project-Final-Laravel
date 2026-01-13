@@ -47,7 +47,7 @@
                 @endforeach
             @endif
             <tr class="font-bold">
-                <td colspan="2" class="text-center" style="padding: 12px;">({{ $baht_text ?? '' }})</td>
+                <td colspan="2" class="text-center" style="padding: 12px;"> รวม ({{ $baht_text ?? '' }})</td>
                 <td class="text-right">{{ number_format($total_amount ?? 0, 0) }}&nbsp;&nbsp;-</td>
             </tr>
         </tbody>

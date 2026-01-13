@@ -80,10 +80,9 @@
                         
                         <span style="white-space: nowrap; margin-left: 15px; margin-right: 5px;">รหัสประจำตัว</span>
                         <div class="page3-ref-container">
-                            @php $s_code = str_pad($student_code ?? '', 13, ' ', STR_PAD_RIGHT); @endphp
-                            @for ($i = 0; $i < 13; $i++)
-                                @php $char = substr($s_code, $i, 1); @endphp
-                                <div class="page3-ref-box">{{ trim($char) === '' ? '' : $char }}</div>
+                            @php $s_code = $student_code ?? ''; @endphp
+                            @for ($i = 0; $i < strlen($s_code); $i++)
+                                <div class="page3-ref-box">{{ substr($s_code, $i, 1) }}</div>
                             @endfor
                         </div>
                     </div>

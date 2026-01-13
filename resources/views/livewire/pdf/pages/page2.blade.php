@@ -61,9 +61,9 @@
                         <td style="border: none; text-align: center; padding-bottom: 5px; vertical-align: middle;">:</td>
                         <td style="border: none; padding-bottom: 5px; vertical-align: middle;">
                             <div class="page2-ref-container" style="height: 18px;">
-                                @php $s_code = str_pad($student_code ?? '', 13, ' ', STR_PAD_RIGHT); @endphp
-                                @for($i=0; $i<13; $i++)
-                                    <div class="page2-ref-box">{{ trim(substr($s_code, $i, 1)) }}</div>
+                                @php $s_code = $student_code ?? ''; @endphp
+                                @for($i=0; $i<strlen($s_code); $i++)
+                                    <div class="page2-ref-box">{{ substr($s_code, $i, 1) }}</div>
                                 @endfor
                             </div>
                         </td>
@@ -73,11 +73,10 @@
                         <td style="border: none; text-align: center; padding-bottom: 5px; vertical-align: middle;">:</td>
                         <td style="border: none; padding-bottom: 5px; vertical-align: middle;">
                             <div class="page2-ref-container" style="height: 18px;">
-                                @php $g_code = str_pad($group_code ?? '', 6, ' ', STR_PAD_RIGHT); @endphp
-                                @for($i=0; $i<6; $i++)
-                                    <div class="page2-ref-box">{{ trim(substr($g_code, $i, 1)) }}</div>
-                                @endfor
-                            </div>
+                                                                @php $g_code = $group_code ?? ''; @endphp
+                                                                @for($i=0; $i<strlen($g_code); $i++)
+                                                                    <div class="page2-ref-box">{{ substr($g_code, $i, 1) }}</div>
+                                                                @endfor                            </div>
                         </td>
                     </tr>
                 </table>
@@ -205,9 +204,9 @@
                                                     <td style="padding-bottom: 8px; text-align: center; vertical-align: middle;">:</td>
                                                     <td style="padding-bottom: 8px; vertical-align: middle;">
                                                         <div class="page2-ref-container" style="display: inline-block;">
-                                                            @php $s_code = str_pad($student_code ?? '', 13, ' ', STR_PAD_RIGHT); @endphp
-                                                            @for($i=0; $i<13; $i++)
-                                                                <div class="page2-ref-box">{{ trim(substr($s_code, $i, 1)) }}</div>
+                                                            @php $s_code = $student_code ?? ''; @endphp
+                                                            @for($i=0; $i<strlen($s_code); $i++)
+                                                                <div class="page2-ref-box">{{ substr($s_code, $i, 1) }}</div>
                                                             @endfor
                                                         </div>
                                                     </td>
@@ -217,11 +216,10 @@
                                                     <td style="text-align: center; vertical-align: middle;">:</td>
                                                     <td style="vertical-align: middle;">
                                                         <div class="page2-ref-container" style="display: inline-block;">
-                                                            @php $g_code = str_pad($group_code ?? '', 6, ' ', STR_PAD_RIGHT); @endphp
-                                                            @for($i=0; $i<6; $i++)
-                                                                <div class="page2-ref-box">{{ trim(substr($g_code, $i, 1)) }}</div>
-                                                            @endfor
-                                                        </div>
+                                                                                            @php $g_code = $group_code ?? ''; @endphp
+                                                                                            @for($i=0; $i<strlen($g_code); $i++)
+                                                                                                <div class="page2-ref-box">{{ substr($g_code, $i, 1) }}</div>
+                                                                                            @endfor                                                        </div>
                                                     </td>
                                                 </tr>
                                             </table>
