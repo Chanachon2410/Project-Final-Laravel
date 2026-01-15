@@ -69,10 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/majors', ManageMajors::class)->name('majors.index');
         Route::get('/subjects', ManageSubjects::class)->name('subjects.index');
         Route::get('/class-groups', ManageClassGroups::class)->name('class-groups.index');
+        Route::get('/teachers-info', \App\Livewire\Registrar\TeacherInfo::class)->name('teachers-info.index');
         Route::get('/semesters', ManageSemesters::class)->name('semesters.index');
         Route::get('/tuition-fees', ManageTuitionFees::class)->name('tuition-fees.index');
         Route::get('/payment-structures', PaymentStructureList::class)->name('payment-structures.index');
         Route::get('/payment-structures/create', PaymentStructureForm::class)->name('payment-structures.create');
+        Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
     });
 
     // Student Routes

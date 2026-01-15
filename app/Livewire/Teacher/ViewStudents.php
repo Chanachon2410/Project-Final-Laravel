@@ -2,8 +2,9 @@
 
 namespace App\Livewire\Teacher;
 
-use App\Repositories\StudentRepositoryInterface;
-use App\Repositories\TeacherRepositoryInterface;
+use App\Models\Semester;
+use App\Models\Student;
+use App\Models\Teacher;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -12,20 +13,26 @@ use Livewire\Attributes\Layout;
 class ViewStudents extends Component
 {
     public $students;
-
-    private TeacherRepositoryInterface $teacherRepository;
-    private StudentRepositoryInterface $studentRepository;
-
-    public function boot(TeacherRepositoryInterface $teacherRepository, StudentRepositoryInterface $studentRepository)
-    {
-        $this->teacherRepository = $teacherRepository;
-        $this->studentRepository = $studentRepository;
-    }
+    public $activeSemester;
 
     public function mount()
     {
-        $teacher = $this->teacherRepository->findByColumn('user_id', Auth::id());
-        $this->students = $this->studentRepository->all()->where('class_group.teacher_advisor_id', $teacher->id);
+        $this->activeSemester = Semester::where('is_active', true)->first();
+
+        $teacher = Teacher::where('user_id', Auth::id())->first();
+
+        if ($teacher) {
+            $this->students = Student::whereHas('classGroup', function ($query) use ($teacher) {
+                $query->where('teacher_advisor_id', $teacher->id);
+            })->with(['user', 'classGroup', 'registrations' => function ($query) {
+                if ($this->activeSemester) {
+                    $query->where('semester', $this->activeSemester->semester)
+                          ->where('year', $this->activeSemester->year);
+                }
+            }])->get();
+        } else {
+            $this->students = collect();
+        }
     }
 
     public function render()

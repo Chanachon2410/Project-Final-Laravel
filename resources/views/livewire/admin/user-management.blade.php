@@ -1,7 +1,7 @@
 <div class="py-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-6 border-b pb-3">การจัดการผู้ใช้</h2>
+
             <button wire:click="create()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 transition duration-150 ease-in-out">สร้างผู้ใช้ใหม่</button>
 
     <!-- Create/Edit Modal -->

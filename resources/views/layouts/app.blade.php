@@ -17,20 +17,57 @@
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     </head>
     <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100 flex">
-            <div class="flex-shrink-0 w-64 bg-white border-r border-gray-200 h-screen overflow-y-auto fixed">
+        <div x-data="{ sidebarCollapsed: false }" class="min-h-screen bg-gray-100 flex">
+            <!-- Collapsible Sidebar -->
+            <div class="flex-shrink-0 bg-white border-r border-gray-200 h-screen overflow-y-auto fixed z-20 transition-all duration-300"
+                 :class="sidebarCollapsed ? 'w-20' : 'w-64'">
                 @include('layouts.navigation')
             </div>
 
-            <div class="flex-1 ml-64 flex flex-col">
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col transition-all duration-300"
+                 :class="sidebarCollapsed ? 'ml-20' : 'ml-64'">
                 <!-- Page Heading -->
-                @isset($header)
-                    <header class="bg-white shadow sticky top-0 z-10">
-                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                <header class="bg-white shadow sticky top-0 z-10 flex items-center px-4" style="min-height: 81px">
+                    <!-- Dynamic Header Title -->
+                    <div class="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+                        @isset($header)
                             {{ $header }}
-                        </div>
-                    </header>
-                @endisset
+                        @else
+                            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                                @if(request()->routeIs('admin.users.*'))
+                                    User Management
+                                @elseif(request()->routeIs('teacher.students.*'))
+                                    นักเรียนในที่ปรึกษา
+                                @elseif(request()->routeIs('student.registration.form'))
+                                    ลงทะเบียนเรียน
+                                @elseif(request()->routeIs('student.registration.upload'))
+                                    อัพโหลดสลิปและหลักฐาน
+                                @elseif(request()->routeIs('registrar.majors.*'))
+                                    Manage Majors (สาขาวิชาเรียน)
+                                @elseif(request()->routeIs('registrar.subjects.*'))
+                                    Manage Subjects (วิชาที่เรียน)
+                                @elseif(request()->routeIs('registrar.class-groups.*'))
+                                    Manage Class Groups (ชั้นปีการศึกษา)
+                                @elseif(request()->routeIs('registrar.teachers-info.*'))
+                                    Teacher Information (ข้อมูลคุณครู)
+                                @elseif(request()->routeIs('registrar.semesters.*'))
+                                    Manage Semesters (ภาคเรียน)
+                                @elseif(request()->routeIs('registrar.tuition-fees.*'))
+                                    Manage Tuition Fees (ค่าบำรุงการศึกษา)
+                                @elseif(request()->routeIs('registrar.payment-structures.index'))
+                                    จัดการโครงสร้างค่าเทอม / ใบแจ้งหนี้
+                                @elseif(request()->routeIs('registrar.payment-structures.create'))
+                                    สร้าง/แก้ไข โครงสร้างค่าเทอม
+                                @elseif(request()->routeIs('registrar.students.*'))
+                                    Manage Students (จัดการข้อมูลนักเรียน)
+                                @else
+                                    Dashboard
+                                @endif
+                            </h2>
+                        @endisset
+                    </div>
+                </header>
 
                 <!-- Page Content -->
                 <main class="flex-1 overflow-y-auto">

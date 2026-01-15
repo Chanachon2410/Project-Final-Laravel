@@ -17,7 +17,7 @@
     <!-- Step 1: Basic Info -->
     @if ($currentStep == 1)
         <div>
-            <h2 class="text-xl font-bold mb-4 text-gray-800">ข้อมูลการศึกษาและกำหนดการ</h2>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">ปีการศึกษา (พ.ศ.)</label>
@@ -85,7 +85,7 @@
     <!-- Step 2: Subjects -->
     @if ($currentStep == 2)
         <div>
-            <h2 class="text-xl font-bold mb-4 text-gray-800">เลือกรายวิชาลงทะเบียน</h2>
+
             
             <!-- Search -->
             <div class="mb-4">
@@ -150,7 +150,7 @@
     <!-- Step 3: Fees -->
     @if ($currentStep == 3)
         <div>
-            <h2 class="text-xl font-bold mb-4 text-gray-800">เลือกค่าใช้จ่ายอื่นๆ</h2>
+
             <div class="mb-4 p-4 bg-yellow-50 text-yellow-800 rounded text-sm">
                 * เลือกรายการค่าใช้จ่ายจากฐานข้อมูล หรือเพิ่มรายการใหม่เองได้
             </div>

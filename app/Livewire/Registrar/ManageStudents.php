@@ -1,0 +1,192 @@
+<?php
+
+namespace App\Livewire\Registrar;
+
+use App\Models\ClassGroup;
+use App\Models\Level;
+use App\Models\Student;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\Attributes\Layout;
+
+#[Layout('layouts.app')]
+class ManageStudents extends Component
+{
+    use WithPagination;
+
+    public $search = '';
+    public $isModalOpen = false;
+    public $confirmingDeletion = false;
+    public $studentIdToDelete;
+
+    // Form fields
+    public $student_id;
+    public $student_code;
+    public $firstname;
+    public $lastname;
+    public $email;
+    public $password;
+    public $level_id;
+    public $class_group_id;
+    public $citizen_id;
+
+    public function render()
+    {
+        $students = Student::with(['user', 'classGroup', 'level'])
+            ->where(function ($query) {
+                $query->where('firstname', 'like', '%' . $this->search . '%')
+                      ->orWhere('lastname', 'like', '%' . $this->search . '%')
+                      ->orWhere('student_code', 'like', '%' . $this->search . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('livewire.registrar.manage-students', [
+            'students' => $students,
+            'levels' => Level::all(),
+            'classGroups' => ClassGroup::all(),
+        ]);
+    }
+
+    public function create()
+    {
+        $this->resetInputFields();
+        $this->isModalOpen = true;
+    }
+
+    public function store()
+    {
+        $this->validate([
+            'student_code' => 'required|string|unique:students,student_code',
+            'firstname' => 'required|string',
+            'lastname' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8',
+            'level_id' => 'required|exists:levels,id',
+            'class_group_id' => 'nullable|exists:class_groups,id',
+            'citizen_id' => 'nullable|string|max:13',
+        ]);
+
+        // Create User
+        $user = User::create([
+            'username' => $this->student_code, // Use student code as username
+            'email' => $this->email,
+            'password' => Hash::make($this->password),
+        ]);
+        $user->assignRole('Student');
+
+        // Create Student
+        Student::create([
+            'user_id' => $user->id,
+            'student_code' => $this->student_code,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'level_id' => $this->level_id,
+            'class_group_id' => $this->class_group_id,
+            'citizen_id' => $this->citizen_id,
+        ]);
+
+        session()->flash('message', 'Student created successfully.');
+        $this->closeModal();
+        $this->resetInputFields();
+    }
+
+    public function edit($id)
+    {
+        $student = Student::with('user')->findOrFail($id);
+        $this->student_id = $id;
+        $this->student_code = $student->student_code;
+        $this->firstname = $student->firstname;
+        $this->lastname = $student->lastname;
+        $this->email = $student->user->email;
+        $this->level_id = $student->level_id;
+        $this->class_group_id = $student->class_group_id;
+        $this->citizen_id = $student->citizen_id;
+        
+        $this->isModalOpen = true;
+    }
+
+    public function update()
+    {
+        $student = Student::findOrFail($this->student_id);
+        $user = $student->user;
+
+        $this->validate([
+            'student_code' => 'required|string|unique:students,student_code,' . $this->student_id,
+            'firstname' => 'required|string',
+            'lastname' => 'required|string',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'level_id' => 'required|exists:levels,id',
+            'class_group_id' => 'nullable|exists:class_groups,id',
+            'citizen_id' => 'nullable|string|max:13',
+        ]);
+
+        $user->update([
+            'username' => $this->student_code, // Sync username
+            'email' => $this->email,
+        ]);
+        
+        if (!empty($this->password)) {
+            $user->update(['password' => Hash::make($this->password)]);
+        }
+
+        $student->update([
+            'student_code' => $this->student_code,
+            'firstname' => $this->firstname,
+            'lastname' => $this->lastname,
+            'level_id' => $this->level_id,
+            'class_group_id' => $this->class_group_id,
+            'citizen_id' => $this->citizen_id,
+        ]);
+
+        session()->flash('message', 'Student updated successfully.');
+        $this->closeModal();
+        $this->resetInputFields();
+    }
+
+    public function confirmDelete($id)
+    {
+        $this->studentIdToDelete = $id;
+        $this->confirmingDeletion = true;
+    }
+
+    public function delete()
+    {
+        $student = Student::find($this->studentIdToDelete);
+        if ($student) {
+            $user = $student->user;
+            $student->delete();
+            if ($user) $user->delete();
+            session()->flash('message', 'Student deleted successfully.');
+        }
+        $this->confirmingDeletion = false;
+        $this->studentIdToDelete = null;
+    }
+
+    public function closeModal()
+    {
+        $this->isModalOpen = false;
+        $this->resetInputFields();
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->confirmingDeletion = false;
+        $this->studentIdToDelete = null;
+    }
+
+    private function resetInputFields()
+    {
+        $this->student_id = null;
+        $this->student_code = '';
+        $this->firstname = '';
+        $this->lastname = '';
+        $this->email = '';
+        $this->password = '';
+        $this->level_id = '';
+        $this->class_group_id = '';
+        $this->citizen_id = '';
+    }
+}

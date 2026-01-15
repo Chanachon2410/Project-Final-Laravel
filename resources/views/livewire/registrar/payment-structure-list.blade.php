@@ -1,6 +1,5 @@
 <div class="p-6 bg-white rounded-lg shadow-lg">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-gray-800">จัดการโครงสร้างค่าเทอม / ใบแจ้งหนี้</h2>
+    <div class="flex justify-end items-center mb-6">
         <a href="{{ route('registrar.payment-structures.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
             + สร้างใบแจ้งหนี้ใหม่
         </a>
