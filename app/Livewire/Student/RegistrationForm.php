@@ -25,7 +25,7 @@ class RegistrationForm extends Component
 
     public function selectStructure($id)
     {
-        $this->paymentStructure = PaymentStructure::with(['items.subject', 'major', 'level'])->find($id);
+        $this->paymentStructure = PaymentStructure::with(['items.subject', 'major', 'level'])->where('is_active', true)->find($id);
         
         if ($this->paymentStructure) {
             $this->showPreview = true;
@@ -84,6 +84,7 @@ class RegistrationForm extends Component
             'fees' => $fees,
             'total_amount' => $totalAmount,
             'baht_text' => $bahtText,
+            'title' => $this->student->title,
             'student_name' => $this->student->first_name . ' ' . $this->student->last_name,
             'student_code' => $this->student->student_code,
             'group_code' => $this->paymentStructure->custom_ref2 ?? ($this->student->classGroup->name ?? '-'),
@@ -168,6 +169,7 @@ class RegistrationForm extends Component
     {
         $structures = PaymentStructure::where('major_id', $this->student->classGroup->major_id)
             ->where('level_id', $this->student->level_id)
+            ->where('is_active', true)
             ->orderBy('id', 'desc')
             ->get();
 

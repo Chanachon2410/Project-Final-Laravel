@@ -13,11 +13,17 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->string('teacher_code', 20);
-            $table->string('title', 20);
+
+            // แก้ไข: เพิ่ม ->nullable() ในคอลัมน์ที่ไม่จำเป็นต้องมีทันที
+            $table->string('teacher_code', 20)->nullable(); // อนุญาตให้ว่างได้
+            $table->string('title', 20)->nullable();        // อนุญาตให้ว่างได้
+
             $table->string('firstname', 100);
             $table->string('lastname', 100);
-            $table->string('citizen_id', 13);
+
+            // แก้ไข: เพิ่ม ->nullable()
+            $table->string('citizen_id', 13)->nullable();   // อนุญาตให้ว่างได้
+
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
         });

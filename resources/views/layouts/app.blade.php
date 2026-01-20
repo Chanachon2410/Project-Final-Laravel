@@ -19,18 +19,18 @@
     <body class="font-sans antialiased">
         <div x-data="{ sidebarCollapsed: false }" class="min-h-screen bg-gray-100 flex">
             <!-- Collapsible Sidebar -->
-            <div class="flex-shrink-0 bg-white border-r border-gray-200 h-screen overflow-y-auto fixed z-20 transition-all duration-300"
+            <div class="flex-shrink-0 bg-white border-r border-gray-200 h-screen overflow-y-auto fixed z-20 transition-[width] duration-300"
                  :class="sidebarCollapsed ? 'w-20' : 'w-64'">
                 @include('layouts.navigation')
             </div>
 
             <!-- Main Content -->
-            <div class="flex-1 flex flex-col transition-all duration-300"
+            <div class="flex-1 flex flex-col transition-[margin-left] duration-300"
                  :class="sidebarCollapsed ? 'ml-20' : 'ml-64'">
                 <!-- Page Heading -->
-                <header class="bg-white shadow sticky top-0 z-10 flex items-center px-4" style="min-height: 81px">
+                <header class="bg-white shadow sticky top-0 z-10 flex items-center justify-between px-6" style="min-height: 81px">
                     <!-- Dynamic Header Title -->
-                    <div class="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="flex-1">
                         @isset($header)
                             {{ $header }}
                         @else
@@ -59,6 +59,8 @@
                                     จัดการโครงสร้างค่าเทอม / ใบแจ้งหนี้
                                 @elseif(request()->routeIs('registrar.payment-structures.create'))
                                     สร้าง/แก้ไข โครงสร้างค่าเทอม
+                                @elseif(request()->routeIs('registrar.import-data.*'))
+                                    Import Excel Data (นำเข้าข้อมูล Excel)
                                 @elseif(request()->routeIs('registrar.students.*'))
                                     Manage Students (จัดการข้อมูลนักเรียน)
                                 @else
@@ -66,6 +68,43 @@
                                 @endif
                             </h2>
                         @endisset
+                    </div>
+
+                    <!-- User Menu Dropdown -->
+                    <div x-data="{ open: false }" class="relative ml-4">
+                        <button @click="open = !open" class="flex items-center gap-2 rounded-full p-1 text-gray-600 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <img alt="User" src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80" class="h-10 w-10 rounded-full object-cover" />
+                            <span class="hidden sm:block text-sm font-medium">{{ Auth::user()->username }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="hidden sm:block h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <div x-show="open" 
+                             @click.away="open = false" 
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                             role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+                            <div class="py-1" role="none">
+                                <div class="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+                                    <p class="font-semibold">Signed in as</p>
+                                    <p class="truncate">{{ Auth::user()->email }}</p>
+                                </div>
+                                <a href="{{ route('profile.edit') }}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-0">Profile</a>
+                                <!-- Logout Form -->
+                                <form method="POST" action="{{ route('logout') }}" role="none">
+                                    @csrf
+                                    <button type="submit" class="text-gray-700 block w-full px-4 py-2 text-left text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1">
+                                        Log Out
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </header>
 

@@ -15,6 +15,8 @@ class ManageSemesters extends Component
 
     public $isOpen = false;
     public $semesterId, $semester, $year, $registration_start_date, $registration_end_date, $late_fee_rate, $is_active;
+    public $search = '';
+    public $perPage = 10;
 
     protected $rules = [
         'semester' => 'required|integer|in:1,2,3',
@@ -32,10 +34,29 @@ class ManageSemesters extends Component
         $this->semesterRepository = $semesterRepository;
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $query = \App\Models\Semester::query();
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('semester', 'like', '%' . $this->search . '%')
+                  ->orWhere('year', 'like', '%' . $this->search . '%');
+            });
+        }
+
         return view('livewire.registrar.manage-semesters', [
-            'semesters' => $this->semesterRepository->paginate(10),
+            'semesters' => $query->paginate($this->perPage),
         ]);
     }
 

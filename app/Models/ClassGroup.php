@@ -13,6 +13,7 @@ class ClassGroup extends Model
         'course_group_code',
         'course_group_name',
         'level_id',
+        'class_room',
         'level_year',
         'major_id',
         'teacher_advisor_id',

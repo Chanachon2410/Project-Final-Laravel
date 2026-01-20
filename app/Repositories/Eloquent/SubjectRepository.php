@@ -20,4 +20,14 @@ class SubjectRepository extends EloquentRepository implements SubjectRepositoryI
     {
         parent::__construct($model);
     }
+
+    public function search(string $search, int $perPage)
+    {
+        return $this->model->query()
+            ->where(function ($query) use ($search) {
+                $query->where('subject_code', 'like', "%{$search}%")
+                      ->orWhere('subject_name', 'like', "%{$search}%");
+            })
+            ->paginate($perPage);
+    }
 }

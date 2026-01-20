@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('class_groups', function (Blueprint $table) {
             $table->id();
             $table->string('course_group_code', 20);
-            $table->string('course_group_name', 20);
+            $table->string('course_group_name', 100);
             $table->foreignId('level_id')->constrained('levels')->onDelete('cascade');
             $table->string('class_room', 10)->nullable();
             $table->integer('level_year');

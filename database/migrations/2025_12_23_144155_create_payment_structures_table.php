@@ -31,6 +31,8 @@ return new class extends Migration
             $table->date('late_payment_start_date')->nullable();
             $table->date('late_payment_end_date')->nullable();
             
+            $table->boolean('is_active')->default(true)->comment('สถานะเปิด/ปิดการใช้งาน');
+            
             $table->timestamps();
         });
     }

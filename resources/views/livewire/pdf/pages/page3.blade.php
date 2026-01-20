@@ -76,7 +76,7 @@
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">ชื่อ-สกุล</span>
                         <span
-                            style="border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 5px;">{{ $student_name }}</span>
+                            style="border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 5px;">{{ ($title ?? '') ? $title . ' ' : '' }}{{ $student_name }}</span>
                         
                         <span style="white-space: nowrap; margin-left: 15px; margin-right: 5px;">รหัสประจำตัว</span>
                         <div class="page3-ref-container">

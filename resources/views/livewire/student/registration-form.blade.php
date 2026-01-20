@@ -3,14 +3,6 @@
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
 
 
-            @if($structures->isEmpty())
-                <div class="text-center py-10 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p class="text-gray-500">ไม่พบรายการใบแจ้งหนี้สำหรับสาขา/ชั้นปีของคุณในขณะนี้</p>
-                </div>
-            @else
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -19,11 +11,11 @@
                                 <th class="p-4">ภาคเรียน/ปี</th>
                                 <th class="p-4 text-right">ยอดชำระ (บาท)</th>
                                 <th class="p-4 text-center">กำหนดชำระ</th>
-                                <th class="p-4 text-center">ดำเนินการ</th>
+                                <th class="p-4 text-center">ลงทะเบียน/พิมพ์ใบแจ้งหนี้</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($structures as $struct)
+                            @forelse($structures as $struct)
                                 <tr class="border-b hover:bg-gray-50 transition">
                                     <td class="p-4 font-medium text-blue-700">{{ $struct->name }}</td>
                                     <td class="p-4">{{ $struct->semester }}/{{ $struct->year }}</td>
@@ -44,11 +36,21 @@
                                         </button>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="p-4 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center py-5">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <p>ไม่พบรายการใบแจ้งหนี้สำหรับสาขา/ชั้นปีของคุณในขณะนี้</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
-            @endif
         </div>
     </div>
 
@@ -99,6 +101,7 @@
                 $bahtText = convertBahtToThai($paymentStructure->total_amount);
 
                 $layoutData = [
+                    'title' => $student->title,
                     'level_name' => $paymentStructure->level->name ?? '-',
                     'major_name' => $paymentStructure->major->major_name ?? '-',
                     'semester' => $paymentStructure->semester,

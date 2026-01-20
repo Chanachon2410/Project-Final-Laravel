@@ -39,15 +39,22 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
-                            <span class="text-sm font-medium"> Management </span>
+                            <span x-show="!sidebarCollapsed" class="text-sm font-medium"> Management </span>
                         </div>
-                        <span class="shrink-0 transition duration-300 group-open:-rotate-180">
+                        <span x-show="!sidebarCollapsed" class="shrink-0 transition duration-300 group-open:-rotate-180">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                         </span>
                     </summary>
-                    <ul class="mt-2 space-y-1 px-4">
+                    <ul x-show="!sidebarCollapsed"
+                        x-transition:enter="transition-all ease-in-out duration-300"
+                        x-transition:enter-start="opacity-0 max-h-0"
+                        x-transition:enter-end="opacity-100 max-h-screen"
+                        x-transition:leave="transition-all ease-in-out duration-200"
+                        x-transition:leave-start="opacity-100 max-h-screen"
+                        x-transition:leave-end="opacity-0 max-h-0"
+                        class="mt-2 space-y-1 overflow-hidden px-4">
                         <li>
                             <a href="{{ route('admin.users.index') }}" 
                                class="block rounded-lg px-4 py-2 text-sm font-medium {{ request()->routeIs('admin.users.index') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
@@ -61,14 +68,42 @@
 
             @role('Student')
             <li>
-                <a href="{{ route('student.registration.upload') }}" 
-                   class="flex items-center gap-2 rounded-lg py-2 text-sm font-medium {{ request()->routeIs('student.registration.upload') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}"
-                   :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span x-show="!sidebarCollapsed">ลงทะเบียนเรียน</span>
-                </a>
+                <details class="group [&_summary::-webkit-details-marker]:hidden" {{ request()->routeIs('student.registration.*') ? 'open' : '' }}>
+                    <summary class="flex cursor-pointer items-center justify-between rounded-lg px-4 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="text-sm font-medium"> การลงทะเบียน </span>
+                        </div>
+                        <span x-show="!sidebarCollapsed" class="shrink-0 transition duration-300 group-open:-rotate-180">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </summary>
+                    <ul x-show="!sidebarCollapsed"
+                        x-transition:enter="transition-all ease-in-out duration-300"
+                        x-transition:enter-start="opacity-0 max-h-0"
+                        x-transition:enter-end="opacity-100 max-h-screen"
+                        x-transition:leave="transition-all ease-in-out duration-200"
+                        x-transition:leave-start="opacity-100 max-h-screen"
+                        x-transition:leave-end="opacity-0 max-h-0"
+                        class="mt-2 space-y-1 overflow-hidden px-4">
+                        <li>
+                            <a href="{{ route('student.registration.form') }}" 
+                               class="block rounded-lg px-4 py-2 text-sm font-medium {{ request()->routeIs('student.registration.form') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
+                                ลงทะเบียน/พิมพ์ใบแจ้งหนี้
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('student.registration.upload') }}" 
+                               class="block rounded-lg px-4 py-2 text-sm font-medium {{ request()->routeIs('student.registration.upload') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
+                                อัพโหลดหลักฐาน
+                            </a>
+                        </li>
+                    </ul>
+                </details>
             </li>
             @endrole
 
@@ -101,7 +136,14 @@
                             </svg>
                         </span>
                     </summary>
-                    <ul class="mt-2 space-y-1" :class="sidebarCollapsed ? 'hidden' : 'px-4'">
+                    <ul x-show="!sidebarCollapsed"
+                        x-transition:enter="transition-all ease-in-out duration-300"
+                        x-transition:enter-start="opacity-0 max-h-0"
+                        x-transition:enter-end="opacity-100 max-h-screen"
+                        x-transition:leave="transition-all ease-in-out duration-200"
+                        x-transition:leave-start="opacity-100 max-h-screen"
+                        x-transition:leave-end="opacity-0 max-h-0"
+                        class="mt-2 space-y-1 overflow-hidden px-4">
                         <li>
                             <a href="{{ route('registrar.students.index') }}" title="Students" class="block rounded-lg px-4 py-2 text-sm font-medium {{ request()->routeIs('registrar.students.*') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
                                 Students (นักเรียน)
@@ -130,7 +172,14 @@
                             </svg>
                         </span>
                     </summary>
-                    <ul class="mt-2 space-y-1" :class="sidebarCollapsed ? 'hidden' : 'px-4'">
+                    <ul x-show="!sidebarCollapsed"
+                        x-transition:enter="transition-all ease-in-out duration-300"
+                        x-transition:enter-start="opacity-0 max-h-0"
+                        x-transition:enter-end="opacity-100 max-h-screen"
+                        x-transition:leave="transition-all ease-in-out duration-200"
+                        x-transition:leave-start="opacity-100 max-h-screen"
+                        x-transition:leave-end="opacity-0 max-h-0"
+                        class="mt-2 space-y-1 overflow-hidden px-4">
                         <li>
                             <a href="{{ route('registrar.majors.index') }}" title="Majors" class="block rounded-lg px-4 py-2 text-sm font-medium {{ request()->routeIs('registrar.majors.*') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
                                 Majors
@@ -170,41 +219,19 @@
                     <span x-show="!sidebarCollapsed">จัดการใบแจ้งหนี้ (PDF)</span>
                 </a>
             </li>
-            @endrole
-
             <li>
-                <a href="{{ route('profile.edit') }}" 
-                   title="Profile"
-                   class="flex items-center gap-2 rounded-lg py-2 text-sm font-medium {{ request()->routeIs('profile.edit') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}"
+                <a href="{{ route('registrar.import-data.index') }}" 
+                   title="Import Excel Data"
+                   class="flex items-center gap-2 rounded-lg py-2 text-sm font-medium {{ request()->routeIs('registrar.import-data.*') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}"
                    :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4'">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span x-show="!sidebarCollapsed">Profile</span>
+                    <span x-show="!sidebarCollapsed">Import Excel Data</span>
                 </a>
             </li>
-        </ul>
-    </div>
 
-    <div class="sticky inset-x-0 bottom-0 border-t border-gray-100">
-        <div class="flex items-center gap-2 bg-white p-4 hover:bg-gray-50" :class="sidebarCollapsed ? 'justify-center' : ''">
-            <img alt="" src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1770&q=80" class="size-10 rounded-full object-cover" />
-            <div x-show="!sidebarCollapsed">
-                <p class="text-xs">
-                    <strong class="block font-medium">{{ Auth::user()->username }}</strong>
-                    <span> {{ Auth::user()->email }} </span>
-                </p>
-            </div>
-            <!-- Logout Form -->
-            <form method="POST" action="{{ route('logout') }}" :class="sidebarCollapsed ? 'absolute right-[-9999px]' : 'ms-auto'">
-                @csrf
-                <button type="submit" class="block rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700">
-                    <span class="sr-only">Log Out</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                </button>
-            </form>
-        </div>
+            @endrole
+        </ul>
     </div>
 </div>

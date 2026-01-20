@@ -2,36 +2,30 @@
 
 namespace App\Livewire\Registrar;
 
+use App\Models\ClassGroup;
 use App\Repositories\ClassGroupRepositoryInterface;
 use App\Repositories\LevelRepositoryInterface;
 use App\Repositories\MajorRepositoryInterface;
 use App\Repositories\TeacherRepositoryInterface;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\ClassGroupsImport;
-use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.app')]
 class ManageClassGroups extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination;
 
     public $isOpen = false;
-    public $isImportModalOpen = false;
-    public $importFile;
-    public $importErrors = []; // Store import errors
-    public $previewData = [];
-    public $fileHeaders = [];
-    public
-    $showPreview = false;
-    public $tempFilePath;
+    public $isViewOpen = false;
+    public $viewingClassGroup;
 
     public $classGroupId, $course_group_code, $course_group_name, $level_id, $level_year, $major_id, $teacher_advisor_id;
     public $levels, $majors, $teachers;
+
+    public $search = '';
+    public $perPage = 10;
 
     protected $rules = [
         'course_group_code' => 'required|string|max:20',
@@ -68,9 +62,40 @@ class ManageClassGroups extends Component
 
     public function render()
     {
+        $query = ClassGroup::query()->with(['level', 'major', 'advisor']);
+
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('course_group_code', 'like', '%' . $this->search . '%')
+                  ->orWhere('course_group_name', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('level', function ($subQuery) {
+                      $subQuery->where('name', 'like', '%' . $this->search . '%');
+                  })
+                  ->orWhereHas('major', function ($subQuery) {
+                      $subQuery->where('major_name', 'like', '%' . $this->search . '%');
+                  })
+                  ->orWhereHas('advisor', function ($subQuery) {
+                    $subQuery->where('firstname', 'like', '%' . $this->search . '%')
+                             ->orWhere('lastname', 'like', '%' . $this->search . '%');
+                });
+            });
+        }
+
+        $classGroups = $query->paginate($this->perPage);
+
         return view('livewire.registrar.manage-class-groups', [
-            'classGroups' => $this->classGroupRepository->paginate(10, ['*'], ['level', 'major', 'advisor']),
+            'classGroups' => $classGroups,
         ]);
+    }
+    
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
     }
 
     public function create()
@@ -78,6 +103,7 @@ class ManageClassGroups extends Component
         $this->resetInputFields();
         $this->openModal();
     }
+
 
     public function edit($id)
     {
@@ -90,6 +116,18 @@ class ManageClassGroups extends Component
         $this->major_id = $classGroup->major_id;
         $this->teacher_advisor_id = $classGroup->teacher_advisor_id;
         $this->openModal();
+    }
+
+    public function view($id)
+    {
+        $this->viewingClassGroup = ClassGroup::with(['advisor', 'students'])->findOrFail($id);
+        $this->isViewOpen = true;
+    }
+
+    public function closeViewModal()
+    {
+        $this->isViewOpen = false;
+        $this->viewingClassGroup = null;
     }
 
     public function store()
@@ -119,13 +157,13 @@ class ManageClassGroups extends Component
 
     public function delete($id)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'Are you sure you want to delete this class group?');
+        $this->dispatch('swal:confirm', id: $id, message: 'คุณแน่ใจหรือไม่ว่าต้องการลบกลุ่มชั้นเรียนนี้?');
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($classGroupId)
+    public function confirmDelete($id)
     {
-        $this->classGroupRepository->deleteById($classGroupId);
+        $this->classGroupRepository->deleteById($id);
         $this->dispatch('swal:success', message: 'Class Group deleted successfully.');
     }
 
@@ -148,145 +186,5 @@ class ManageClassGroups extends Component
     public function closeModal()
     {
         $this->isOpen = false;
-    }
-
-    public function openImportModal()
-    {
-        $this->isImportModalOpen = true;
-    }
-
-    public function closeImportModal()
-    {
-        $this->isImportModalOpen = false;
-        $this->importErrors = [];
-        $this->cancelPreview(); // Reset preview state
-    }
-
-    public function previewData()
-    {
-        $this->validate([
-            'importFile' => 'required|mimes:xlsx,xls',
-        ]);
-
-        $this->importErrors = [];
-        $this->previewData = [];
-
-        try {
-            $this->tempFilePath = $this->importFile->store('livewire-tmp');
-            $rows = Excel::toCollection(new \stdClass(), $this->tempFilePath)->first();
-
-            if ($rows->isEmpty()) {
-                $this->dispatch('swal:error', message: 'The Excel file is empty.');
-                return;
-            }
-
-            $lastPotentialCode = null;
-
-            foreach ($rows as $index => $row) {
-                $rowNumber = $index + 1;
-                $val0 = trim($row[0] ?? '');
-                $val1 = trim($row[1] ?? '');
-                $val2 = trim($row[2] ?? '');
-                $colsToCheck = [$val0, $val1, $val2];
-
-                // 1. Find Group Code (9-11 digits)
-                $foundCodeThisRow = false;
-                foreach ($colsToCheck as $val) {
-                    if (preg_match('/^\d{9,11}$/', $val)) {
-                        $lastPotentialCode = $val;
-                        $foundCodeThisRow = true;
-                        break;
-                    }
-                }
-                if ($foundCodeThisRow) continue; // Found code, move to next row to find name
-
-                // 2. Find Group Name
-                $foundName = null;
-                foreach ($colsToCheck as $val) {
-                    if (preg_match('/(ปวช|ปวส)\.(\d+)/', $val)) {
-                        $foundName = $val;
-                        break;
-                    }
-                }
-                
-                // 3. If we have a name and a stored code, we have a pair
-                if ($foundName && $lastPotentialCode) {
-                    // Parse the name to get details
-                    $levelName = '';
-                    $classRoom = '-';
-
-                    if (preg_match('/(ปวช|ปวส)\.(\d+)(\/(\d+))?/', $foundName, $matches)) {
-                        $prefix = $matches[1];
-                        $year = $matches[2];
-                        $room = $matches[4] ?? null;
-                        $levelName = "{$prefix}.{$year}";
-                        $classRoom = $room ?? '-';
-                    }
-
-                    // Add to preview data instead of saving
-                    $this->previewData[] = [
-                        'course_group_code' => $lastPotentialCode,
-                        'course_group_name' => $foundName,
-                        'level_name'        => $levelName,
-                        'class_room'        => $classRoom,
-                    ];
-
-                    $lastPotentialCode = null; // Reset after pairing
-                }
-            }
-
-            if (empty($this->previewData)) {
-                 $this->dispatch('swal:warning', message: 'Could not find any valid Class Group pairs to preview.');
-            }
-
-            $this->showPreview = true;
-
-        } catch (\Exception $e) {
-            $this->dispatch('swal:error', message: 'Error processing file: ' . $e->getMessage());
-        }
-    }
-
-
-    public function cancelPreview()
-    {
-        $this->showPreview = false;
-        $this->previewData = [];
-        $this->fileHeaders = [];
-        if ($this->tempFilePath && Storage::exists($this->tempFilePath)) {
-            Storage::delete($this->tempFilePath);
-        }
-        $this->tempFilePath = null;
-        $this->importFile = null;
-    }
-
-    public function confirmImport()
-    {
-        $this->importErrors = []; // Reset errors
-
-        if (!$this->tempFilePath || !Storage::exists($this->tempFilePath)) {
-            $this->dispatch('swal:error', message: 'File not found. Please upload again.');
-            $this->cancelPreview();
-            return;
-        }
-
-        try {
-            $importer = new ClassGroupsImport;
-            Excel::import($importer, $this->tempFilePath);
-            
-            $this->importErrors = $importer->getErrors();
-
-            if (count($this->importErrors) > 0) {
-                $this->dispatch('swal:warning', message: 'Import completed with some issues. Please check the list.');
-            } else {
-                $this->dispatch('swal:success', message: 'Class Groups imported successfully.');
-                $this->closeImportModal();
-            }
-        } catch (\Exception $e) {
-            $this->dispatch('swal:error', message: 'Error importing file: ' . $e->getMessage());
-        } finally {
-            if ($this->tempFilePath && Storage::exists($this->tempFilePath)) {
-                Storage::delete($this->tempFilePath);
-            }
-        }
     }
 }

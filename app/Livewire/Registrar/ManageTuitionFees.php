@@ -19,6 +19,8 @@ class ManageTuitionFees extends Component
     public $year;
     public $fee_name;
     public $rate_money;
+    public $search = '';
+    public $perPage = 10;
 
     protected $rules = [
         'semester' => 'required|integer|min:1|max:3',
@@ -34,10 +36,30 @@ class ManageTuitionFees extends Component
         $this->tuitionFeeRepository = $tuitionFeeRepository;
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $query = \App\Models\TuitionFee::query();
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('fee_name', 'like', '%' . $this->search . '%')
+                  ->orWhere('semester', 'like', '%' . $this->search . '%')
+                  ->orWhere('year', 'like', '%' . $this->search . '%');
+            });
+        }
+
         return view('livewire.registrar.manage-tuition-fees', [
-            'tuitionFees' => $this->tuitionFeeRepository->paginate(10),
+            'tuitionFees' => $query->paginate($this->perPage),
         ]);
     }
 

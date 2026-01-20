@@ -5,159 +5,189 @@ namespace App\Imports;
 use App\Models\ClassGroup;
 use App\Models\Level;
 use App\Models\Major;
+use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithStartRow;
 
-class ClassGroupsImport implements ToCollection
+class ClassGroupsImport implements ToCollection, WithStartRow
 {
     private $levels;
     private $majors;
     private $teachers;
-    private $errors = [];
-    private $lastPotentialCode = null;
+
+    // 🟢 เพิ่มตัวแปรเก็บยอดสรุป (Public เพื่อให้ Livewire ดึงไปใช้ได้)
+    public $summary = [
+        'created' => 0,
+        'updated' => 0,
+    ];
 
     public function __construct()
     {
-        $this->levels = Level::all();
+        $this->levels = Level::all()->keyBy('name');
         $this->majors = Major::all();
-        $this->teachers = Teacher::all();
+        $this->teachers = Teacher::with('user')->get()->keyBy(function ($teacher) {
+            return strtolower(trim($teacher->firstname) . ' ' . trim($teacher->lastname));
+        });
+    }
+
+    public function startRow(): int
+    {
+        return 1;
     }
 
     public function collection(Collection $rows)
     {
-        Log::info('Start Importing Class Groups (Aggressive Debug Mode)', ['count' => $rows->count()]);
-        
-        $this->lastPotentialCode = null;
+        Log::info("--- เริ่มต้น Import ---");
 
-        foreach ($rows as $index => $row) {
-            try {
-                // Read row by row from index 0
-                $this->processComplexRow($row, $index + 1);
-            } catch (\Exception $e) {
-                $this->errors[] = "Row " . ($index + 1) . ": " . $e->getMessage();
+        if (!isset($rows[6]) || !isset($rows[7])) {
+            return;
+        }
+
+        $courseGroupCode = trim($rows[6][2] ?? '');
+        $majorString     = trim($rows[6][4] ?? '');
+        $classInfoString = trim($rows[7][2] ?? '');
+        $teacherFullName = trim($rows[7][4] ?? '');
+
+        if (!$courseGroupCode) return;
+
+        // --- Prepare Metadata ---
+        $level = $this->getOrCreateLevel($classInfoString);
+        $major = $this->getExistingMajorOrTemp($majorString, $classInfoString);
+        $teacher = $this->getOrCreateTeacher($teacherFullName);
+
+        // --- Class Group ---
+        $classGroup = ClassGroup::updateOrCreate(
+            ['course_group_code' => $courseGroupCode],
+            [
+                'course_group_name'  => $majorString,
+                'level_id'           => $level->id,
+                'level_year'         => $this->extractLevelYear($level->name),
+                'class_room'         => $this->extractClassRoom($classInfoString),
+                'major_id'           => $major->id,
+                'teacher_advisor_id' => $teacher ? $teacher->id : null,
+            ]
+        );
+
+        $studentRows = $rows->slice(10);
+        foreach ($studentRows as $row) {
+            $studentCode = trim($row[2] ?? '');
+            $fullName    = trim($row[3] ?? '');
+            if (!$studentCode || !$fullName) continue;
+
+            $citizenId = isset($row[1]) ? str_replace([' ', '-'], '', $row[1]) : null;
+            $nameParts = $this->parseName($fullName);
+
+            // 1. User: เปลี่ยนเป็น updateOrCreate เพื่อให้ Password อัปเดตตาม Excel เสมอ
+            $user = User::updateOrCreate(
+                ['username' => $studentCode],
+                [
+                    'email'      => $studentCode . '@student.example.com',
+                    'password'   => Hash::make($citizenId), // อัปเดตพาสเวิร์ดตามบัตร ปชช ล่าสุด
+                ]
+            );
+
+            if (!$user->hasRole('student')) {
+                $user->assignRole('student');
+            }
+
+            // 2. Student
+            $student = Student::updateOrCreate(
+                ['student_code' => $studentCode],
+                [
+                    'title'          => $nameParts['title'],
+                    'firstname'      => $nameParts['firstname'],
+                    'lastname'       => $nameParts['lastname'],
+                    'citizen_id'     => $citizenId,
+                    'class_group_id' => $classGroup->id,
+                    'level_id'       => $level->id,
+                    'user_id'        => $user->id,
+                ]
+            );
+
+            // 🟢 เช็คว่า "สร้างใหม่" หรือ "อัปเดต"
+            if ($student->wasRecentlyCreated) {
+                $this->summary['created']++;
+            } else {
+                $this->summary['updated']++;
             }
         }
     }
-    
-    public function getErrors()
+
+    // --- Helper Methods (เหมือนเดิมเป๊ะ ไม่ต้องแก้) ---
+    private function getExistingMajorOrTemp($majorString, $classInfoString)
     {
-        return $this->errors;
+        $inputName = trim($majorString);
+        $exactMatch = $this->majors->firstWhere('major_name', $inputName);
+        if ($exactMatch) return $exactMatch;
+        $targetPrefix = '';
+        if (str_contains($classInfoString, 'ปวช')) {
+            $targetPrefix = '2';
+        } elseif (str_contains($classInfoString, 'ปวส')) {
+            $targetPrefix = '3';
+        }
+        $keyword = trim(preg_replace('/[0-9]+/', '', $inputName));
+        $foundMajor = $this->majors->first(function ($item) use ($keyword, $targetPrefix) {
+            $nameMatch = str_contains($item->major_name, $keyword);
+            $codeMatch = true;
+            if ($targetPrefix) {
+                $codeMatch = str_starts_with($item->major_code, $targetPrefix);
+            }
+            return $nameMatch && $codeMatch;
+        });
+        if ($foundMajor) return $foundMajor;
+        $newMajor = Major::create(['major_name' => $inputName, 'major_code' => 'TEMP-' . strtoupper(Str::random(6))]);
+        $this->majors->push($newMajor);
+        return $newMajor;
     }
-
-    private function processComplexRow($row, $rowNumber)
+    private function parseName(string $fullName): array
     {
-        // Debug: Log raw row data
-        // Log::info("Row {$rowNumber} Raw:", $row->toArray());
-
-        $val0 = trim($row[0] ?? '');
-        $val1 = trim($row[1] ?? '');
-        $val2 = trim($row[2] ?? ''); // Sometimes data shifts to C
-
-        // 1. Find Group Code (9-11 digits)
-        // Check ALL columns because sometimes it shifts
-        if (preg_match('/^\d{9,11}$/', $val0)) {
-            $this->lastPotentialCode = $val0;
-            // Log::info("Row {$rowNumber}: Found potential code {$val0}");
-            return;
-        }
-        if (preg_match('/^\d{9,11}$/', $val1)) {
-            $this->lastPotentialCode = $val1;
-            return;
-        }
-        if (preg_match('/^\d{9,11}$/', $val2)) {
-            $this->lastPotentialCode = $val2;
-            return;
-        }
-
-        // 2. Find Group Name (Matches ปวช.X/Y or ปวส.X/Y)
-        // Regex: (ปวช|ปวส)\.(\d)(\/(\d+))?
-        // Covers: ปวช.1, ปวช.1/1, ปวส.2/3
-        $foundName = null;
-        $colsToCheck = [$val0, $val1, $val2];
-        
-        foreach ($colsToCheck as $val) {
-            if (preg_match('/(ปวช|ปวส)\.(\d+)/', $val)) {
-                $foundName = $val;
+        $fullName = trim(preg_replace('/\s+/', ' ', $fullName));
+        $prefixes = ['ว่าที่ร้อยตรี', 'นางสาว', 'นาย', 'นาง', 'ด.ช.', 'ด.ญ.', 'Mr.', 'Mrs.', 'Ms.', 'Miss'];
+        $title = '';
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($fullName, $prefix)) {
+                $title = $prefix;
+                $fullName = Str::replaceFirst($prefix, '', $fullName);
                 break;
             }
         }
-
-        if ($foundName && $this->lastPotentialCode) {
-            // Found a pair!
-            $this->saveClassGroup($this->lastPotentialCode, $foundName, $rowNumber);
-            $this->lastPotentialCode = null; // Reset to avoid reusing same code
-        } else if ($foundName && !$this->lastPotentialCode) {
-            // Found Name but NO Code? (Maybe Code was on same line?)
-            // Try to find code in same line
-             foreach ($colsToCheck as $val) {
-                if (preg_match('/^\d{9,11}$/', $val)) {
-                    $this->lastPotentialCode = $val;
-                    $this->saveClassGroup($val, $foundName, $rowNumber);
-                    $this->lastPotentialCode = null;
-                    return;
-                }
-            }
-            // Warning: Found name without code
-            // Log::warning("Row {$rowNumber}: Found Name '{$foundName}' but no Code yet.");
-        }
+        $fullName = trim($fullName);
+        $parts = explode(' ', $fullName);
+        return ['title' => $title, 'firstname' => $parts[0] ?? '', 'lastname' => implode(' ', array_slice($parts, 1))];
     }
-
-    private function saveClassGroup($code, $name, $rowNumber)
+    private function getOrCreateLevel($name)
     {
-        // Extract Level and Room
-        $levelName = '';
-        $levelYear = 1;
-        $classRoom = null;
-
-        if (preg_match('/(ปวช|ปวส)\.(\d+)(\/(\d+))?/', $name, $matches)) {
-            // Group 1: Prefix (ปวช)
-            // Group 2: Year (1)
-            // Group 4: Room (1) - Optional
-            
-            $prefix = $matches[1];
-            $year = $matches[2];
-            $room = $matches[4] ?? null;
-
-            $levelName = "{$prefix}.{$year}"; // "ปวช.1"
-            $levelYear = (int)$year;
-            $classRoom = $room;
-        }
-
-        $level = $this->levels->firstWhere('name', $levelName);
-        if (!$level) {
-            // Try fallback? Or just log error?
-            // Often "ปวช.1" exists in DB.
-            $this->errors[] = "Row {$rowNumber}: Group '{$name}' -> Level '{$levelName}' not found in DB.";
-            return;
-        }
-
-        // Major: Fallback to first
-        $major = $this->majors->first();
-
-        ClassGroup::updateOrCreate(
-            ['course_group_code' => $code],
-            [
-                'course_group_name' => $name,
-                'class_room'        => $classRoom,
-                'level_id'          => $level->id,
-                'level_year'        => $levelYear,
-                'major_id'          => $major->id,
-                'teacher_advisor_id'=> null, 
-            ]
-        );
-        Log::info("Imported: {$code} - {$name} (Room: {$classRoom})");
+        $cleanName = trim(explode('/', $name)[0] ?? $name);
+        return $this->levels->get($cleanName) ?? $this->levels->get($name) ?? Level::create(['name' => $cleanName]);
     }
-
-    private function extractYear($levelName)
+    private function getOrCreateTeacher($fullName)
     {
-        if (preg_match('/(\d+)/', $levelName, $matches)) {
-            return (int)$matches[1];
+        if (!$fullName) return null;
+        $parts = $this->parseName($fullName);
+        $key = strtolower($parts['firstname'] . ' ' . $parts['lastname']);
+        if ($found = $this->teachers->get($key)) return $found;
+        $u = User::create(['username' => 't_' . Str::random(5), 'email' => Str::random(5) . '@t.com', 'password' => Hash::make('123')]);
+        if (!$u->hasRole('teacher')) {
+            $u->assignRole('teacher');
         }
-        return 1;
+        $t = Teacher::create(['user_id' => $u->id, 'firstname' => $parts['firstname'], 'lastname' => $parts['lastname'], 'title' => $parts['title']]);
+        $this->teachers->put($key, $t);
+        return $t;
+    }
+    private function extractLevelYear($name)
+    {
+        preg_match('/(\d+)/', $name, $m);
+        return $m[1] ?? 1;
+    }
+    private function extractClassRoom($name)
+    {
+        $p = explode('/', $name);
+        return trim($p[1] ?? '1');
     }
 }

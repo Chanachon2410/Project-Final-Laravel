@@ -16,7 +16,30 @@ class ManageStudents extends Component
 {
     use WithPagination;
 
+    public $perPage = 10;
     public $search = '';
+
+    public $allColumns = [
+        'citizen_id' => 'Citizen ID',
+        'student_code' => 'Student Code',
+        'name' => 'Name',
+        'level' => 'Level',
+        'room' => 'Room',
+        'class_group' => 'Class Group',
+    ];
+
+    public $selectedColumns = [];
+
+    public function mount()
+    {
+        $this->selectedColumns = array_keys($this->allColumns);
+    }
+
+    public function updatingPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public $isModalOpen = false;
     public $confirmingDeletion = false;
     public $studentIdToDelete;
@@ -24,6 +47,7 @@ class ManageStudents extends Component
     // Form fields
     public $student_id;
     public $student_code;
+    public $title;
     public $firstname;
     public $lastname;
     public $email;
@@ -41,7 +65,7 @@ class ManageStudents extends Component
                       ->orWhere('student_code', 'like', '%' . $this->search . '%');
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->paginate($this->perPage);
 
         return view('livewire.registrar.manage-students', [
             'students' => $students,
@@ -49,6 +73,8 @@ class ManageStudents extends Component
             'classGroups' => ClassGroup::all(),
         ]);
     }
+
+
 
     public function create()
     {
@@ -60,6 +86,7 @@ class ManageStudents extends Component
     {
         $this->validate([
             'student_code' => 'required|string|unique:students,student_code',
+            'title' => 'nullable|string|max:50',
             'firstname' => 'required|string',
             'lastname' => 'required|string',
             'email' => 'required|email|unique:users,email',
@@ -81,6 +108,7 @@ class ManageStudents extends Component
         Student::create([
             'user_id' => $user->id,
             'student_code' => $this->student_code,
+            'title' => $this->title,
             'firstname' => $this->firstname,
             'lastname' => $this->lastname,
             'level_id' => $this->level_id,
@@ -98,6 +126,7 @@ class ManageStudents extends Component
         $student = Student::with('user')->findOrFail($id);
         $this->student_id = $id;
         $this->student_code = $student->student_code;
+        $this->title = $student->title;
         $this->firstname = $student->firstname;
         $this->lastname = $student->lastname;
         $this->email = $student->user->email;
@@ -115,6 +144,7 @@ class ManageStudents extends Component
 
         $this->validate([
             'student_code' => 'required|string|unique:students,student_code,' . $this->student_id,
+            'title' => 'nullable|string|max:50',
             'firstname' => 'required|string',
             'lastname' => 'required|string',
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -134,6 +164,7 @@ class ManageStudents extends Component
 
         $student->update([
             'student_code' => $this->student_code,
+            'title' => $this->title,
             'firstname' => $this->firstname,
             'lastname' => $this->lastname,
             'level_id' => $this->level_id,
@@ -181,6 +212,7 @@ class ManageStudents extends Component
     {
         $this->student_id = null;
         $this->student_code = '';
+        $this->title = '';
         $this->firstname = '';
         $this->lastname = '';
         $this->email = '';

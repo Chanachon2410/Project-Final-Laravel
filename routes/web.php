@@ -30,7 +30,7 @@ Route::get('/dashboard', function () {
     } elseif ($user->hasRole('Registrar')) {
         return redirect()->route('registrar.dashboard');
     } elseif ($user->hasRole('Student')) {
-        return redirect()->route('student.dashboard');
+        return redirect()->route('student.registration.form');
     }
     return redirect()->route('profile.edit'); // Fallback to profile setting if no specific role dashboard
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -66,6 +66,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return view('registrar.dashboard');
         })->name('dashboard');
 
+        Route::get('/import-data', \App\Livewire\Registrar\ImportData::class)->name('import-data.index');
+
         Route::get('/majors', ManageMajors::class)->name('majors.index');
         Route::get('/subjects', ManageSubjects::class)->name('subjects.index');
         Route::get('/class-groups', ManageClassGroups::class)->name('class-groups.index');
@@ -74,6 +76,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/tuition-fees', ManageTuitionFees::class)->name('tuition-fees.index');
         Route::get('/payment-structures', PaymentStructureList::class)->name('payment-structures.index');
         Route::get('/payment-structures/create', PaymentStructureForm::class)->name('payment-structures.create');
+        Route::get('/students/{student}', \App\Livewire\Registrar\ViewStudent::class)->name('students.view');
         Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
     });
 

@@ -14,24 +14,30 @@ class ManageMajors extends Component
     use WithPagination;
 
     public $isOpen = false;
-    public $majorId, $major_code, $major_name;
-    public $search = '';
-
-    protected $rules = [
-// ... (rules)
-    ];
-
-    private MajorRepositoryInterface $majorRepository;
-
-    public function boot(MajorRepositoryInterface $majorRepository)
-    {
-        $this->majorRepository = $majorRepository;
-    }
-
-    public function updatedSearch()
-    {
-        $this->resetPage();
-    }
+        public $majorId, $major_code, $major_name;
+        public $search = '';
+        public $perPage = 10; // เพิ่ม property นี้
+    
+        protected $rules = [
+    // ... (rules)
+        ];
+    
+        private MajorRepositoryInterface $majorRepository;
+    
+        public function boot(MajorRepositoryInterface $majorRepository)
+        {
+            $this->majorRepository = $majorRepository;
+        }
+    
+        public function updatedSearch()
+        {
+            $this->resetPage();
+        }
+    
+        public function updatedPerPage() // เพิ่ม method นี้
+        {
+            $this->resetPage();
+        }
 
     public function render()
     {
@@ -45,7 +51,7 @@ class ManageMajors extends Component
         }
 
         return view('livewire.registrar.manage-majors', [
-            'majors' => $query->paginate(10),
+            'majors' => $query->paginate($this->perPage),
         ]);
     }
 

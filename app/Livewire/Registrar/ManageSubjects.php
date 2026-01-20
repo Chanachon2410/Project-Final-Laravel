@@ -15,6 +15,8 @@ class ManageSubjects extends Component
 
     public $isOpen = false;
     public $subjectId, $subject_code, $subject_name, $credit, $hour_theory, $hour_practical;
+    public $search = '';
+    public $perPage = 10;
 
     protected $rules = [
         'subject_code' => 'required|string|max:20',
@@ -31,10 +33,20 @@ class ManageSubjects extends Component
         $this->subjectRepository = $subjectRepository;
     }
 
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         return view('livewire.registrar.manage-subjects', [
-            'subjects' => $this->subjectRepository->paginate(10),
+            'subjects' => $this->subjectRepository->search($this->search, $this->perPage),
         ]);
     }
 
