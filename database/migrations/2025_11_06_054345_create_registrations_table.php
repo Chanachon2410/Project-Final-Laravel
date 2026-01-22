@@ -17,8 +17,10 @@ return new class extends Migration
             $table->tinyInteger('semester');
             $table->integer('year');
             $table->enum('status', ['pending', 'approved', 'rejected']);
-            $table->string('registration_card_file');
-            $table->string('slip_file_name');
+            $table->string('approved_by')->nullable()->comment('ชื่อผู้ทำการอนุมัติ');
+            $table->text('remarks')->nullable()->comment('หมายเหตุ เช่น เหตุผลการปฏิเสธ');
+            $table->string('registration_card_file')->nullable();
+            $table->string('slip_file_name')->nullable();
             $table->timestamps();
         });
     }

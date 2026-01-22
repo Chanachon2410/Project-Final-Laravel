@@ -57,7 +57,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return view('teacher.dashboard');
         })->name('dashboard');
 
-        Route::get('/students', ViewStudents::class)->name('students.view');
+        Route::get('/students/{groupId?}', ViewStudents::class)->name('students.view');
     });
 
     // Registrar Routes
@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/payment-structures/create', PaymentStructureForm::class)->name('payment-structures.create');
         Route::get('/students/{student}', \App\Livewire\Registrar\ViewStudent::class)->name('students.view');
         Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
+        Route::get('/registration-status', \App\Livewire\Registrar\RegistrationStatus::class)->name('registration-status.index');
     });
 
     // Student Routes

@@ -20,39 +20,86 @@ class PaymentStructureForm extends Component
     public $year;
     public $major_id;
     public $level_id;
-    public $custom_ref2; // เพิ่มตัวแปร
+    public $custom_ref2;
     public $payment_start_date;
     public $payment_end_date;
     public $late_payment_start_date;
     public $late_payment_end_date;
 
-    // Step 2: Subjects
+    // Late Fee Config
+    public $late_fee_type = 'flat';
+    public $late_fee_amount = 0;
+    public $late_fee_max_days = null;
+    
+    // Calculator Properties
+    public $calculate_days;
+    public $late_fee_max_amount;
+
+    // Step 2: Subjects & Credit Calculation
     public $searchSubject = '';
     public $selectedSubjects = []; 
+    public $totalTheoryCredits = 0;
+    public $totalPracticalCredits = 0;
+    public $theoryRate = 100;    // Default rate
+    public $practicalRate = 100; // Default rate
 
     // Step 3: Fees
     public $searchFee = '';
-    public $fees = []; // [ ['name' => '...', 'amount' => ... ] ]
+    public $fees = [];
 
     public function mount()
     {
-        $this->year = date('Y') + 543; // Thai Year default
+        $this->year = date('Y') + 543;
+    }
+    
+    public function updatedCalculateDays($value)
+    {
+        $this->late_fee_max_days = $value;
+        $this->calculateMaxFee();
+    }
+    
+    public function updatedLateFeeAmount($value)
+    {
+        $this->calculateMaxFee();
+    }
+    
+    public function calculateMaxFee()
+    {
+        if (is_numeric($this->late_fee_amount) && is_numeric($this->calculate_days)) {
+            $this->late_fee_max_amount = (float)$this->late_fee_amount * (float)$this->calculate_days;
+        }
     }
 
-    // Auto-calculate Late Payment Start Date
     public function updatedPaymentEndDate($value)
     {
         if ($value) {
             try {
                 $endDate = \Carbon\Carbon::parse($value);
                 $this->late_payment_start_date = $endDate->addDay()->format('Y-m-d');
-            } catch (\Exception $e) {
-                // Handle invalid date format if necessary
+            } catch (\Exception $e) {}
+        }
+    }
+
+    public function updatedLevelId($value)
+    {
+        if (!$value) return;
+        $level = Level::find($value);
+        if ($level) {
+            if (str_contains($level->name, 'ปวช') || str_contains($level->name, 'ปวส')) {
+                $this->late_fee_type = 'flat';
+                $this->late_fee_max_days = null;
+                // Set default rates for vocational
+                $this->theoryRate = 100;
+                $this->practicalRate = 100;
+            } elseif (str_contains($level->name, 'ตรี') || str_contains($level->name, 'Bachelor')) {
+                $this->late_fee_type = 'daily';
+                // Set default rates for bachelor
+                $this->theoryRate = 150;
+                $this->practicalRate = 200;
             }
         }
     }
 
-    // เมื่อมีการเลือกสาขาวิชา ให้ดึงรหัสสาขา (major_code) มาใส่ใน custom_ref2 อัตโนมัติ
     public function updatedMajorId($value)
     {
         if ($value) {
@@ -69,13 +116,18 @@ class PaymentStructureForm extends Component
     public function render()
     {
         $levels = Level::all();
-        $majors = collect(); // Default empty
+        $majors = collect(); // FIX: Initialize variable
 
         if ($this->level_id) {
             $level = Level::find($this->level_id);
             if ($level) {
-                // Determine prefix based on level name
-                $prefix = (str_contains($level->name, 'ปวส') || str_contains($level->name, 'ชั้นสูง')) ? '3' : '2';
+                if (str_contains($level->name, 'ปวส') || str_contains($level->name, 'ชั้นสูง')) {
+                    $prefix = '3';
+                } elseif (str_contains($level->name, 'ตรี') || str_contains($level->name, 'Bachelor')) {
+                    $prefix = '4';
+                } else {
+                    $prefix = '2';
+                }
                 
                 $majors = Major::where('major_code', 'like', $prefix . '%')
                                ->orderBy('major_code')
@@ -83,7 +135,6 @@ class PaymentStructureForm extends Component
             }
         }
         
-        // Filter subjects for Step 2
         $subjects = collect();
         if ($this->currentStep == 2) {
             $subjects = Subject::where('subject_name', 'like', '%' . $this->searchSubject . '%')
@@ -92,19 +143,12 @@ class PaymentStructureForm extends Component
                         ->get();
         }
 
-        // Filter fees for Step 3
         $availableFees = collect();
         if ($this->currentStep == 3) {
             $query = TuitionFee::query();
-            
-            // Allow searching by name
             if (!empty($this->searchFee)) {
                 $query->where('fee_name', 'like', '%' . $this->searchFee . '%');
             }
-
-            // Order by matching year/semester first, then others
-            // Note: In raw SQL this is easier, in Eloquent we can just order by year desc, semester desc to show latest.
-            // Or we can just show ALL fees for now so the user can see them.
             $availableFees = $query->orderBy('year', 'desc')
                                    ->orderBy('semester', 'desc')
                                    ->get();
@@ -118,10 +162,15 @@ class PaymentStructureForm extends Component
         ]);
     }
 
-    // Navigation
     public function nextStep()
     {
         $this->validateStep();
+        
+        // Auto-calculate tuition fees when moving from subjects (Step 2) to fees (Step 3)
+        if ($this->currentStep == 2) {
+            $this->calculateTuitionFees();
+        }
+
         $this->currentStep++;
     }
 
@@ -138,16 +187,18 @@ class PaymentStructureForm extends Component
                 'year' => 'required',
                 'major_id' => 'required',
                 'level_id' => 'required',
-                'custom_ref2' => 'nullable|string|max:20', // Validate
+                'custom_ref2' => 'nullable|string|max:20',
                 'payment_start_date' => 'nullable|date',
                 'payment_end_date' => 'nullable|date|after_or_equal:payment_start_date',
+                'late_fee_type' => 'required|in:flat,daily',
+                'late_fee_amount' => 'required|numeric|min:0',
+                'late_fee_max_days' => 'nullable|required_if:late_fee_type,daily|integer|min:1',
             ]);
         }
-        // Step 2 validation is optional (can have no subjects?) -> User flow implies selecting subjects.
-        // Let's assume at least one subject is needed? No, maybe just fees. Allowing empty.
     }
 
-    // Step 2 Logic
+    // --- Step 2 Logic ---
+
     public function toggleSubject($subjectId)
     {
         $subject = Subject::find($subjectId);
@@ -166,23 +217,55 @@ class PaymentStructureForm extends Component
                 'hour_practical' => $subject->hour_practical,
             ];
         }
+        $this->calculateCredits();
     }
 
-    // Step 3 Logic
-    public function addCustomFee()
+    public function calculateCredits()
     {
-        $this->fees[] = ['name' => '', 'amount' => 0];
+        $this->totalTheoryCredits = 0;
+        $this->totalPracticalCredits = 0;
+
+        foreach ($this->selectedSubjects as $subj) {
+            // Assume 1 hour = 1 credit for theory
+            // Remaining credits are practical
+            $t = (int)$subj['hour_theory']; 
+            $p = (float)$subj['credit'] - $t; 
+            
+            $this->totalTheoryCredits += $t;
+            $this->totalPracticalCredits += max(0, $p);
+        }
     }
 
-    public function selectFee($feeId)
+    // --- Step 3 Logic ---
+
+    public function calculateTuitionFees()
     {
-        $fee = TuitionFee::find($feeId);
-        if ($fee) {
+        // Remove existing auto-generated fees to prevent duplication
+        $this->fees = array_filter($this->fees, function($item) {
+            return !str_contains($item['name'], 'หน่วยกิตละ');
+        });
+
+        // Add Theory Fee
+        if ($this->totalTheoryCredits > 0) {
+            $amount = $this->totalTheoryCredits * $this->theoryRate;
             $this->fees[] = [
-                'name' => $fee->fee_name,
-                'amount' => $fee->rate_money
+                'id' => null,
+                'name' => "ค่าลงทะเบียน (ทฤษฎี) หน่วยกิตละ {$this->theoryRate} บาท ({$this->totalTheoryCredits} หน่วยกิต)",
+                'amount' => $amount
             ];
         }
+
+        // Add Practical Fee
+        if ($this->totalPracticalCredits > 0) {
+            $amount = $this->totalPracticalCredits * $this->practicalRate;
+            $this->fees[] = [
+                'id' => null,
+                'name' => "ค่าลงทะเบียน (ปฏิบัติ) หน่วยกิตละ {$this->practicalRate} บาท ({$this->totalPracticalCredits} หน่วยกิต)",
+                'amount' => $amount
+            ];
+        }
+        
+        $this->fees = array_values($this->fees);
     }
 
     public function removeFee($index)
@@ -191,33 +274,45 @@ class PaymentStructureForm extends Component
         $this->fees = array_values($this->fees);
     }
 
+    public function selectFee($feeId)
+    {
+        $fee = TuitionFee::find($feeId);
+        if ($fee) {
+            $this->fees[] = [
+                'id' => $fee->id,
+                'name' => $fee->fee_name,
+                'amount' => (float)$fee->rate_money
+            ];
+        }
+    }
+
+    public function addCustomFee()
+    {
+        $this->fees[] = [
+            'id' => null,
+            'name' => '',
+            'amount' => 0.00
+        ];
+    }
+
     public function calculateTotal()
     {
         $total = 0;
         foreach ($this->fees as $fee) {
             $total += (float)$fee['amount'];
         }
-        // Subjects usually don't have individual price in this context unless specified, 
-        // usually it's calculated as "Registration Fee" based on total credits.
-        // But for now, I'll sum just the explicit fees.
         return $total;
     }
     
-    public function getTotalCredits()
-    {
-        return collect($this->selectedSubjects)->sum('credit');
-    }
-
     public function getBahtText()
     {
-        $service = new \App\Services\FeeCalculationService();
-        return $service->getThaiBahtText($this->calculateTotal());
+        // Simple Baht Text function or use Service
+        // For now, returning empty or simple logic if Service not available
+        return '-'; 
     }
 
-    // Final Action
     public function save()
     {
-        // 1. Create Structure
         $major = Major::find($this->major_id);
         $level = Level::find($this->level_id);
         $structureName = "ใบแจ้งหนี้ {$major->major_name} {$level->name} {$this->semester}/{$this->year}";
@@ -229,20 +324,22 @@ class PaymentStructureForm extends Component
             'major_id' => $this->major_id,
             'level_id' => $this->level_id,
             'company_code' => '81245',
-            'custom_ref2' => $this->custom_ref2, // บันทึกค่า
+            'custom_ref2' => $this->custom_ref2,
             'payment_start_date' => $this->payment_start_date,
             'payment_end_date' => $this->payment_end_date,
             'late_payment_start_date' => $this->late_payment_start_date,
             'late_payment_end_date' => $this->late_payment_end_date,
+            'late_fee_type' => $this->late_fee_type,
+            'late_fee_amount' => $this->late_fee_amount,
+            'late_fee_max_days' => $this->late_fee_type == 'daily' ? $this->late_fee_max_days : null,
         ]);
 
-        // 2. Save Subjects
         $sortOrder = 1;
         foreach ($this->selectedSubjects as $subj) {
             PaymentStructureItem::create([
                 'payment_structure_id' => $structure->id,
                 'name' => $subj['name'],
-                'amount' => 0, // Subjects in Thai Voc usually 0 here, calculated via Credit Fee item
+                'amount' => 0, 
                 'is_subject' => true,
                 'subject_id' => $subj['id'],
                 'credit' => $subj['credit'],
@@ -252,7 +349,6 @@ class PaymentStructureForm extends Component
             ]);
         }
 
-        // 3. Save Fees
         foreach ($this->fees as $fee) {
             if (!empty($fee['name'])) {
                 PaymentStructureItem::create([
@@ -266,6 +362,6 @@ class PaymentStructureForm extends Component
         }
 
         session()->flash('message', 'สร้างใบแจ้งหนี้สำเร็จ!');
-        return redirect()->to('/registrar/dashboard'); // Assuming a dashboard exists, or just reload
+        return redirect()->to('/registrar/dashboard');
     }
 }

@@ -27,11 +27,25 @@
         padding: 0 !important;
     }
 
-    .text-center { text-align: center; }
-    .text-right { text-align: right; }
-    .text-left { text-align: left; }
-    .font-bold { font-weight: bold; }
-    .align-top { vertical-align: top !important; }
+    .text-center {
+        text-align: center;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-left {
+        text-align: left;
+    }
+
+    .font-bold {
+        font-weight: bold;
+    }
+
+    .align-top {
+        vertical-align: top !important;
+    }
 
     .page3-ref-container {
         display: inline-block;
@@ -46,7 +60,7 @@
         text-align: center;
         line-height: 13px;
         margin-right: -1px;
-        font-family: sans-serif;
+        font-family: 'TH Sarabun PSK';
         font-size: 9pt;
         font-weight: bold;
         vertical-align: middle;
@@ -76,8 +90,8 @@
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">ชื่อ-สกุล</span>
                         <span
-                            style="border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 5px;">{{ ($title ?? '') ? $title . ' ' : '' }}{{ $student_name }}</span>
-                        
+                            style="border-bottom: 1px dotted #000; flex-grow: 1; padding-left: 5px;">{{ $title ?? '' ? $title . ' ' : '' }}{{ $student_name }}</span>
+
                         <span style="white-space: nowrap; margin-left: 15px; margin-right: 5px;">รหัสประจำตัว</span>
                         <div class="page3-ref-container">
                             @php $s_code = $student_code ?? ''; @endphp
@@ -127,14 +141,14 @@
     <table class="page3-table" style="table-layout: fixed; width: 100%;">
         <thead>
             <tr>
-                <th rowspan="2" class="text-center" style="width: 45px;">ลำดับที่</th>
-                <th rowspan="2" class="text-center" style="width: 90px;">รหัสวิชา</th>
+                <th rowspan="2" class="text-center" style="width: 35px;">ลำดับที่</th>
+                <th rowspan="2" class="text-center" style="width: 80px;">รหัสวิชา</th>
                 <th rowspan="2" class="text-center">ชื่อวิชา</th>
-                <th colspan="3" class="text-center" style="width: 140px;">จำนวนช.ม. - หน่วยกิต</th>
+                <th colspan="3" class="text-center" style="width: 150px;">จำนวนช.ม. - หน่วยกิต</th>
             </tr>
             <tr>
-                <th class="text-center" style="width: 35px;">ท</th>
-                <th class="text-center" style="width: 35px;">ป</th>
+                <th class="text-center" style="width: 40px;">ท</th>
+                <th class="text-center" style="width: 40px;">ป</th>
                 <th class="text-center" style="width: 70px;">หน่วยกิต</th>
             </tr>
         </thead>
@@ -151,10 +165,10 @@
                 <tr>
                     <td class="text-center">{{ $loop->iteration }}</td>
                     <td class="text-center">{{ $subj['code'] }}</td>
-                    <td class="text-left" style="padding-left: 8px;">{{ $subj['name'] }}</td>
+                    <td class="text-left" style="padding-left: 8px; overflow: hidden; white-space: nowrap;">{{ $subj['name'] }}</td>
                     <td class="text-center">{{ $subj['hour_theory'] }}</td>
                     <td class="text-center">{{ $subj['hour_practical'] }}</td>
-                    <td class="text-center">{{ $subj['credit'] }}</td>
+                    <td class="text-center">{{ $subj['credit'] + 0 }}</td>
                 </tr>
                 @php
                     $totalTheory += $subj['hour_theory'];
@@ -165,7 +179,7 @@
 
             @for ($i = count($subjects); $i < $maxRows; $i++)
                 <tr>
-                    <td>&nbsp;</td>
+                    <td class="text-center">&nbsp;</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -174,134 +188,146 @@
                 </tr>
             @endfor
 
-            <!-- แถวรวมแบบที่ 1 -->
             <tr class="font-bold">
                 <td></td>
                 <td></td>
                 <td class="text-center">รวม</td>
                 <td class="text-center">{{ $totalTheory }}</td>
                 <td class="text-center">{{ $totalPractical }}</td>
-                <td class="text-center">{{ $totalCredit }}</td>
+                <td class="text-center">{{ $totalCredit + 0 }}</td>
             </tr>
-            <!-- แถวรวมแบบที่ 2 (ท+ป) -->
             <tr class="font-bold">
                 <td></td>
                 <td></td>
                 <td class="text-center">รวม</td>
                 <td colspan="2" class="text-center">{{ $totalTheory + $totalPractical }}</td>
-                <td class="text-center">{{ $totalCredit }}</td>
+                <td class="text-center">{{ $totalCredit + 0 }}</td>
             </tr>
         </tbody>
     </table>
 
-    <table class="page3-table">
+    <table class="page3-table" style="table-layout: fixed; width: 100%;">
         <tbody>
             @php
-                $fees = $fees ?? [];
-                $maxFeeRows = 5;
-                // คำนวณยอดรวม (ถ้าไม่มีตัวแปรส่งมา)
-                $total_amount = $total_amount ?? collect($fees)->sum('amount');
-                
-                // หาจำนวนรายการในตารางที่ 1 เพื่อเริ่มนับต่อ
                 $startSequence = (isset($subjects) ? count($subjects) : 0) + 1;
+                // คำนวณยอดทั่วไปสำหรับรายการที่ 1 (Total - Tuition)
+                $totalGeneralAmount = ($total_amount ?? 0) - ($total_tuition_amount ?? 0);
             @endphp
 
-            @for ($i = 0; $i < $maxFeeRows; $i++)
-                <tr style="height: 16px;">
-                    <td class="text-center" style="width: 25px;">
-                        {{ isset($fees[$i]) ? ($startSequence + $i) : '' }}
-                    </td>
+            {{-- รายการที่ 1: ค่าบำรุงการศึกษา (หักค่าลงทะเบียนออก) --}}
+            <tr style="height: 22px;">
+                <td class="text-center" style="width: 35px;">{{ $startSequence }}</td>
+                <td class="text-left" style="padding-left: 8px;">ค่าบำรุงการศึกษา</td>
+                <td class="text-right" style="width: 100px; padding-right: 10px;">{{ number_format($totalGeneralAmount, 0) }}</td>
+                <td class="text-center" style="width: 50px;">บาท</td>
+                
+                {{-- ช่องงานการเงิน --}}
+                <td rowspan="5" class="align-top no-padding" style="width: 30%; position: relative; height: 120px;">
+                    <div class="font-bold text-center"
+                        style="font-size: 9px; padding: 2px 2px; border-bottom: 1px solid #000; background-color: #fcfcfc;">
+                        สำหรับงานการเงิน
+                    </div>
+                    <div style="padding: 5px 8px; font-size: 10px; line-height: 1.7;">
+                        <div>ใบเสร็จเล่มที่.......................................................</div>
+                        <div>เลขที่.................................................................</div>
+                        <div>วันที่................../................./............................</div>
+                    </div>
+                    
+                    {{-- ส่วนผู้รับเงินติดขอบล่าง --}}
+                    <div class="text-center" style="position: absolute; bottom: 5px; left: 0; width: 100%; font-size: 10px;">
+                        ลงชื่อ............................................................<br>
+                        <span class="font-bold">ผู้รับเงิน</span>
+                    </div>
+                </td>
+            </tr>
 
-                    <td class="text-left">
-                        {{ isset($fees[$i]) ? $fees[$i]['name'] : '' }}
-                    </td>
+            {{-- รายการที่ 2: อื่นๆ (แสดงค่าลงทะเบียนรวม) --}}
+            <tr style="height: 22px;">
+                <td class="text-center">{{ $startSequence + 1 }}</td>
+                <td class="text-left" style="padding-left: 8px;">อื่นๆ</td>
+                <td class="text-right" style="padding-right: 10px;">{{ number_format($total_tuition_amount ?? 0, 0) }}</td>
+                <td class="text-center">บาท</td>
+            </tr>
 
-                    <td class="text-right" style="width: 60px;">
-                        {{ isset($fees[$i]) ? number_format($fees[$i]['amount'], 0) : '' }}
-                    </td>
+            {{-- รายการที่ 3: ค่าปรับ --}}
+            <tr style="height: 22px;">
+                <td class="text-center">{{ $startSequence + 2 }}</td>
+                <td class="text-left" style="padding-left: 8px;">ค่าปรับลงทะเบียนล่าช้า (เหตุชำระหลังวันที่ {{ $late_fee_props['header_date'] ?? 'กำหนด' }})</td>
+                <td class="text-right"></td>
+                <td class="text-center">บาท</td>
+            </tr>
 
-                    <td class="text-center" style="width: 30px;">
-                        {{ isset($fees[$i]) ? 'บาท' : '' }}
-                    </td>
+            {{-- แถวว่างเสริม --}}
+            <tr style="height: 22px;">
+                <td class="text-center"></td>
+                <td class="text-left"></td>
+                <td class="text-right"></td>
+                <td class="text-center"></td>
+            </tr>
 
-                    @if ($i === 0)
-                        <td rowspan="{{ $maxFeeRows + 1 }}" class="align-top no-padding" style="width: 30%;">
-
-                            <div class="font-bold text-center"
-                                style="font-size: 11px; padding: 4px 2px; border-bottom: 1px solid #000;">
-                                สำหรับงานการเงิน
-                            </div>
-
-                            <div style="padding: 4px 5px; font-size: 10px; line-height: 1.5;">
-                                <div>ใบเสร็จเล่มที่................................................</div>
-                                <div>เลขที่..........................................................</div>
-                                <div>วันที่................../................./......................</div>
-
-                                <div class="text-center" style="margin-top: 8px;">
-                                    ลงชื่อ......................................<br>
-                                    <span class="font-bold">ผู้รับเงิน</span>
-                                </div>
-                            </div>
-                        </td>
-                    @endif
-                </tr>
-            @endfor
-
-            <tr class="font-bold" style="height: 16px; background-color: #f9fafb;">
+            <tr class="font-bold" style="height: 25px; background-color: #fcfcfc;">
                 <td colspan="2" class="text-center">รวมจำนวนเงินทั้งสิ้น</td>
-                <td class="text-right">{{ number_format($total_amount, 0) }}</td>
+                <td class="text-right"></td>
                 <td class="text-center">บาท</td>
             </tr>
         </tbody>
     </table>
 
-    <!-- ส่วนที่เพิ่มใหม่: ลายเซ็นตามรูปภาพ (ปรับให้เล็กลงและตรงขอบ) -->
     <div style="margin-top: 5px;">
         <table style="width: 100%; border-collapse: collapse; border: none !important;">
             <tr>
-                <!-- สำหรับเจ้าหน้าที่ธนาคาร -->
                 <td style="width: 22%; border: 1px solid #000; vertical-align: top; padding: 0;">
                     <table style="width: 100%; height: 115px; border-collapse: collapse; border: none !important;">
                         <tr>
-                            <td style="text-align: center; vertical-align: middle; border-bottom: 1px solid #000; height: 32px; padding: 0 2px;">
+                            <td
+                                style="text-align: center; vertical-align: middle; border-bottom: 1px solid #000; height: 32px; padding: 0 2px;">
                                 <div class="font-bold" style="font-size: 9pt;">สำหรับเจ้าหน้าที่ธนาคาร</div>
                             </td>
                         </tr>
                         <tr>
-                            <td style="text-align: center; vertical-align: bottom; padding-bottom: 2px; border: none !important;">
-                                <div style="margin-bottom: 5px;">..............................</div>
+                            <td
+                                style="text-align: center; vertical-align: bottom; padding-bottom: 5px; border: none !important;">
+                                <div style="margin-bottom: 5px;">................................................</div>
                                 <div class="font-bold" style="font-size: 9pt;">ผู้รับเงิน</div>
                             </td>
                         </tr>
                     </table>
                 </td>
 
-                <!-- ช่องว่างคั่นกลาง -->
                 <td style="width: 2%; border: none !important;"></td>
 
-                <!-- ตารางลงชื่อ 3 ฝ่าย -->
                 <td style="width: 76%; vertical-align: top; padding: 0;">
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid #000;">
                         <tr>
-                            <th colspan="3" class="text-center font-bold" style="border: 1px solid #000; padding: 0; font-size: 9pt; height: 32px; vertical-align: middle;">ลงชื่อ</th>
+                            <th colspan="3" class="text-center font-bold"
+                                style="border: 1px solid #000; padding: 0; font-size: 9pt; height: 32px; vertical-align: middle;">
+                                ลงชื่อ</th>
                         </tr>
                         <tr>
-                            <td class="text-center font-bold" style="border-right: 1px solid #000; width: 33.33%; padding: 8px 3px; font-size: 9pt;">นักศึกษา</td>
-                            <td class="text-center font-bold" style="border-right: 1px solid #000; width: 33.33%; padding: 8px 3px; font-size: 9pt;">ครูที่ปรึกษา</td>
-                            <td class="text-center font-bold" style="width: 33.33%; padding: 8px 3px; font-size: 9pt;">ทะเบียน</td>
+                            <td class="text-center font-bold"
+                                style="border-right: 1px solid #000; width: 33.33%; padding: 8px 3px; font-size: 9pt;">
+                                นักศึกษา</td>
+                            <td class="text-center font-bold"
+                                style="border-right: 1px solid #000; width: 33.33%; padding: 8px 3px; font-size: 9pt;">
+                                ครูที่ปรึกษา</td>
+                            <td class="text-center font-bold"
+                                style="width: 33.33%; padding: 8px 3px; font-size: 9pt;">ทะเบียน</td>
                         </tr>
                         <tr style="height: 65px;">
-                            <td class="text-center" style="border-right: 1px solid #000; vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
-                                <div style="margin-bottom: 12px;">..........................................</div>
-                                <div>(..........................................)</div>
+                            <td class="text-center"
+                                style="border-right: 1px solid #000; vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
+                                <div style="margin-bottom: 12px;">...........................................................</div>
+                                <div>(...........................................................)</div>
                             </td>
-                            <td class="text-center" style="border-right: 1px solid #000; vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
-                                <div style="margin-bottom: 12px;">..........................................</div>
-                                <div>(..........................................)</div>
+                            <td class="text-center"
+                                style="border-right: 1px solid #000; vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
+                                <div style="margin-bottom: 12px;">...........................................................</div>
+                                <div>(...........................................................)</div>
                             </td>
-                            <td class="text-center" style="vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
-                                <div style="margin-bottom: 12px;">..........................................</div>
-                                <div>(..........................................)</div>
+                            <td class="text-center"
+                                style="vertical-align: bottom; padding-bottom: 8px; font-size: 8pt;">
+                                <div style="margin-bottom: 12px;">...........................................................</div>
+                                <div>(...........................................................)</div>
                             </td>
                         </tr>
                     </table>
@@ -311,20 +337,23 @@
     </div>
 
     <div class="text-center font-bold" style="font-size: 9pt; margin-top: 10px;">
-        * ชำระเงินได้ระหว่างวันที่ {{ $payment_start_date ?? '6 - 31 พฤษภาคม 2568' }} ได้ที่ ณ ธนาคารกรุงไทย ทุกสาขาทั่วประเทศ
+        * ชำระเงินได้ระหว่างวันที่ {{ $payment_normal_range ?? '-' }} 
+        @if(isset($late_fee_props) && $late_fee_props['show'])
+            และล่าช้าระหว่างวันที่ {{ $late_fee_range ?? '-' }}
+        @endif
+        ได้ที่ ณ ธนาคารกรุงไทย ทุกสาขาทั่วประเทศ
     </div>
 
-    <!-- เส้นตัดตามรอย -->
     <div style="text-align: center; margin-top: 5px; margin-bottom: 5px; font-size: 8pt;">
-        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ตัดตามรอยนี้ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ตัดตามรอยนี้ - - - - - - - - - - - - - - - -
+        - - - - - - - - - - - - - - - - - -
     </div>
 
-    <!-- ส่วนท้าย: ส่วนนักศึกษาเก็บไว้เป็นหลักฐาน -->
     <div style="font-size: 9pt; line-height: 1.8; padding: 0 20px 0 60px;">
         <div class="text-center font-bold" style="margin-bottom: 5px; font-style: italic; margin-left: -40px;">
             ส่วนนี้นักศึกษาเก็บไว้เป็นหลักฐานการลงทะเบียน
         </div>
-        
+
         <div style="white-space: nowrap;">
             ชื่อนักศึกษา....................................................................รหัส.......................................ชั้น............................
         </div>
@@ -332,17 +361,18 @@
             สาขาวิชา...........................................................................................ได้ชำระเงินลงทะเบียนโดยฝากเงินเข้าบัญชี
         </div>
         <div style="white-space: nowrap;">
-            ธนาคารกรุงไทย ทุกสาขาทั่วประเทศ <b>เมื่อวันที่</b>....................................................................................................
+            ธนาคารกรุงไทย ทุกสาขาทั่วประเทศ
+            <b>เมื่อวันที่</b>....................................................................................................
         </div>
         <div class="font-bold">
             และรับหลักฐานการลงทะเบียนแล้ว
         </div>
-        
+
         <div style="margin-top: 5px; padding-left: 20%;">
-            รับหลักฐานไว้แล้ว..............................................................เจ้าหน้าที่งานทะเบียน
+            รับหลักฐานไว้แล้ว......................................................................................เจ้าหน้าที่งานทะเบียน
         </div>
         <div style="padding-left: 35%;">
-            วันที่............/......................../................
+            วันที่............/................................................/................
         </div>
     </div>
 </div>

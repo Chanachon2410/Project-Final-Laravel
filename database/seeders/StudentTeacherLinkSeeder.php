@@ -18,15 +18,26 @@ class StudentTeacherLinkSeeder extends Seeder
     {
         $studentUsers = User::role('Student')->get();
         $teacherUsers = User::role('Teacher')->get();
-        $firstLevel = Level::first();
+        $firstLevel = Level::first(); // Usually Pwc.1
+        $bachelorLevel = Level::where('name', 'like', '%ปริญญาตรี%')->first();
 
         foreach ($studentUsers as $key => $user) {
+            $targetLevelId = $firstLevel->id;
+            $firstname = 'Student';
+            $lastname = 'User ' . ($key + 1);
+            
+            if ($user->username === 'bachelor1' && $bachelorLevel) {
+                $targetLevelId = $bachelorLevel->id;
+                $firstname = 'สมชาย';
+                $lastname = 'รักเรียน';
+            }
+
             Student::create([
                 'user_id' => $user->id,
                 'student_code' => 'STU' . str_pad($key + 1, 4, '0', STR_PAD_LEFT),
-                'firstname' => 'Student',
-                'lastname' => 'User ' . ($key + 1),
-                'level_id' => $firstLevel->id,
+                'firstname' => $firstname,
+                'lastname' => $lastname,
+                'level_id' => $targetLevelId,
                 'citizen_id' => rand(1000000000000, 1999999999999),
             ]);
         }

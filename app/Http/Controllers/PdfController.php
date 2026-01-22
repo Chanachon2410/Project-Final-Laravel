@@ -22,7 +22,7 @@ class PdfController extends Controller
             'student.user', 
             'student.level', 
             'student.classGroup.major',
-            'student.classGroup.teacherAdvisor'
+            'student.classGroup.advisor'
         ])->findOrFail($registrationId);
 
         $student = $registration->student;

@@ -20,6 +20,9 @@ class PaymentStructure extends Model
         'payment_end_date',
         'late_payment_start_date',
         'late_payment_end_date',
+        'late_fee_type',
+        'late_fee_amount',
+        'late_fee_max_days',
     ];
 
     protected $casts = [

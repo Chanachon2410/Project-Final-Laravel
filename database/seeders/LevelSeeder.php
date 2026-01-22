@@ -19,7 +19,8 @@ class LevelSeeder extends Seeder
             ['name' => 'ปวช.3'],
             ['name' => 'ปวส.1'],
             ['name' => 'ปวส.2'],
-            ['name' => 'ป.ตรี'],
+            ['name' => 'ปริญญาตรี ปีที่ 1'],
+            ['name' => 'ปริญญาตรี ปีที่ 2'],
         ];
 
         foreach ($levels as $level) {

@@ -13,26 +13,24 @@ return new class extends Migration
     {
         Schema::create('payment_structures', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->comment('ชื่อรายการ เช่น ใบแจ้งหนี้ ปวช.2 เทอม 1/68');
-            $table->tinyInteger('semester');
+            $table->string('name');
+            $table->integer('semester');
             $table->integer('year');
-            
-            // Target Group
             $table->foreignId('major_id')->constrained('majors')->onDelete('cascade');
-            $table->foreignId('level_id')->constrained('levels')->onDelete('cascade'); // e.g., ปวช.2
-            
-            // Bank Info
-            $table->string('company_code', 10)->default('81245');
-            $table->string('custom_ref2', 20)->nullable()->comment('รหัสกลุ่มเรียน (Ref.2) ที่ต้องการกำหนดเอง');
-            
-            // Dates for PDF footer
+            $table->foreignId('level_id')->constrained('levels')->onDelete('cascade');
+            $table->decimal('total_amount', 10, 2)->default(0);
             $table->date('payment_start_date')->nullable();
             $table->date('payment_end_date')->nullable();
+            
+            // Late Fee Logic Columns
             $table->date('late_payment_start_date')->nullable();
             $table->date('late_payment_end_date')->nullable();
+            $table->decimal('late_fee_amount', 10, 2)->default(0)->comment('จำนวนเงินค่าปรับ (ต่อวันหรือเหมาจ่าย)');
+            $table->enum('late_fee_type', ['flat', 'daily'])->default('flat')->comment('flat=เหมาจ่าย, daily=ปรับรายวัน');
+            $table->integer('late_fee_max_days')->nullable()->comment('จำนวนวันปรับสูงสุด (เฉพาะ daily)');
             
-            $table->boolean('is_active')->default(true)->comment('สถานะเปิด/ปิดการใช้งาน');
-            
+            $table->boolean('is_active')->default(true);
+            $table->string('custom_ref2')->nullable()->comment('รหัสอ้างอิง Ref.2 แบบกำหนดเอง');
             $table->timestamps();
         });
     }

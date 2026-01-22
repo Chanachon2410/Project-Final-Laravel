@@ -58,24 +58,28 @@
     @if($paymentStructure)
         <div id="invoice-print-area" class="hidden">
             @php
+                // Reuse logic similar to Controller to prepare data for Preview
+                // 1. Fees
                 $mappedFees = $paymentStructure->items->where('is_subject', false)->map(function($item) {
                     return ['name' => $item->name, 'amount' => $item->amount];
                 })->values()->toArray();
 
+                // 2. Subjects
                 $mappedSubjects = [];
                 foreach($paymentStructure->items as $item) {
                      if($item->is_subject && $item->subject) {
                          $mappedSubjects[] = [
-                             'code' => $item->subject->subject_code,
-                             'name' => $item->subject->subject_name,
-                             'credit' => $item->subject->credit,
-                             'hour_theory' => $item->subject->hour_theory,
-                             'hour_practical' => $item->subject->hour_practical,
+                             'code' => $item->subject->subject_code ?? '-',
+                             'name' => $item->subject->subject_name ?? $item->name,
+                             'credit' => (int)($item->subject->credit ?? 0),
+                             'hour_theory' => (int)($item->subject->hour_theory ?? 0),
+                             'hour_practical' => (int)($item->subject->hour_practical ?? 0),
                              'amount' => $item->amount
                          ];
                      }
                 }
 
+                // 3. Baht Text
                 if (!function_exists('convertBahtToThai')) {
                     function convertBahtToThai($number) {
                         $txtNum = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า','สิบ'];
@@ -100,7 +104,96 @@
                 }
                 $bahtText = convertBahtToThai($paymentStructure->total_amount);
 
+                // Calculate Tuition total for Page 2 "Others" field
+                $totalTuitionAmount = 0;
+                if (isset($mappedFees)) {
+                    foreach ($mappedFees as $fee) {
+                        if (str_starts_with($fee['name'], 'ค่าลงทะเบียน')) {
+                            $totalTuitionAmount += (float)$fee['amount'];
+                        }
+                    }
+                }
+
+                // 4. Late Fee Logic (Mirrored from Controller)
+                $levelName = $paymentStructure->level->name ?? ''; // Use relation directly
+                $isBachelor = str_contains($levelName, 'ตรี') || str_contains($levelName, 'Bachelor');
+
+                $lateFeeType = $isBachelor ? 'daily' : ($paymentStructure->late_fee_type ?? 'flat');
+                $lateFeeAmount = (float)($paymentStructure->late_fee_amount ?? 0);
+                $startDate = $paymentStructure->late_payment_start_date; // Carbon object
+                $maxDays = ($paymentStructure->late_fee_max_days && $paymentStructure->late_fee_max_days > 0) ? $paymentStructure->late_fee_max_days : 15;
+
+                $thaiMonths = [
+                    1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
+                    5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',
+                    9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม',
+                ];
+
+                $formatThaiDate = function ($d) use ($thaiMonths) {
+                    if (!$d) return '...';
+                    try {
+                        $d = \Carbon\Carbon::parse($d);
+                        return $d->day . ' ' . $thaiMonths[$d->month] . ' ' . ($d->year + 543);
+                    } catch (\Exception $e) { return '-'; }
+                };
+
+                $lateFeeProps = [
+                    'show' => ($startDate || $lateFeeAmount > 0),
+                    'type' => $lateFeeType,
+                    'header_date' => $formatThaiDate($startDate),
+                    'amount_flat' => number_format($lateFeeAmount, 0),
+                    'schedule' => []
+                ];
+
+                if ($lateFeeType === 'daily' && $startDate && $lateFeeAmount > 0) {
+                    $startObj = \Carbon\Carbon::parse($startDate);
+                    for ($i = 1; $i <= $maxDays; $i++) {
+                        $currDate = $startObj->copy()->addDays($i - 1);
+                        $fineVal = $lateFeeAmount * $i;
+                        
+                        $lateFeeProps['schedule'][] = [
+                            'date_full' => $currDate->day . ' ' . $thaiMonths[$currDate->month] . ' ' . ($currDate->year + 543),
+                            'amount' => number_format($fineVal, 0),
+                            'is_last' => ($i === $maxDays)
+                        ];
+                    }
+                }
+
+                $grandTotal = $paymentStructure->total_amount;
+                if ($lateFeeProps['show'] && $lateFeeType !== 'daily') {
+                     $grandTotal += $lateFeeAmount;
+                }
+                $grandBahtText = convertBahtToThai($grandTotal);
+                
+                if ($startDate) {
+                     $s = \Carbon\Carbon::parse($startDate);
+                     $e = $paymentStructure->late_payment_end_date ? \Carbon\Carbon::parse($paymentStructure->late_payment_end_date) : null;
+                     
+                     if ($e) {
+                         if ($s->month == $e->month) {
+                             $lateFeeRange = $s->day . " - " . $e->day . " " . $thaiMonths[$s->month] . " " . ($s->year + 543);
+                         } else {
+                             $lateFeeRange = $s->day . " " . $thaiMonths[$s->month] . " - " . $e->day . " " . $thaiMonths[$e->month] . " " . ($s->year + 543);
+                         }
+                     } else {
+                         $lateFeeRange = $s->day . " " . $thaiMonths[$s->month] . " " . ($s->year + 543) . " เป็นต้นไป";
+                     }
+                }
+
+                $payNormalRange = '-';
+                if ($paymentStructure->payment_start_date && $paymentStructure->payment_end_date) {
+                    $ps = \Carbon\Carbon::parse($paymentStructure->payment_start_date);
+                    $pe = \Carbon\Carbon::parse($paymentStructure->payment_end_date);
+                    if ($ps->month == $pe->month) {
+                        $payNormalNormalText = $ps->day . " - " . $pe->day . " " . $thaiMonths[$ps->month] . " " . ($ps->year + 543);
+                    } else {
+                        $payNormalNormalText = $ps->day . " " . $thaiMonths[$ps->month] . " - " . $pe->day . " " . $thaiMonths[$pe->month] . " " . ($ps->year + 543);
+                    }
+                    $payNormalRange = $payNormalNormalText;
+                }
+
                 $layoutData = [
+                    'isPdf' => false, // Set false for Preview mode
                     'title' => $student->title,
                     'level_name' => $paymentStructure->level->name ?? '-',
                     'major_name' => $paymentStructure->major->major_name ?? '-',
@@ -110,12 +203,18 @@
                     'subjects' => $mappedSubjects,
                     'total_amount' => $paymentStructure->total_amount,
                     'baht_text' => $bahtText,
-                    'payment_start_date' => $paymentStructure->payment_start_date ? \Carbon\Carbon::parse($paymentStructure->payment_start_date)->format('d/m/Y') : '-',
-                    'payment_end_date' => $paymentStructure->payment_end_date ? \Carbon\Carbon::parse($paymentStructure->payment_end_date)->format('d/m/Y') : '-',
+                    'payment_normal_range' => $payNormalRange, // เพิ่มบรรทัดนี้
                     'student_name' => $student->firstname . ' ' . $student->lastname,
                     'student_code' => $student->student_code,
                     'group_code' => $paymentStructure->custom_ref2 ?? (($paymentStructure->level->name ?? '') . ' ' . ($paymentStructure->major->major_code ?? '')),
-                    'all_majors' => $allMajors, // ส่งข้อมูลสาขาวิชาไปให้ PDF
+                    
+                    // Inject Late Fee Props & Majors List
+                    'late_fee_props' => $lateFeeProps,
+                    'grand_total' => $grandTotal,
+                    'grand_baht_text' => $grandBahtText,
+                    'late_fee_range' => $lateFeeRange,
+                    'all_majors' => $allMajors, 
+                    'total_tuition_amount' => $totalTuitionAmount,
                 ];
             @endphp
             @include('livewire.pdf.invoice-main', $layoutData)

@@ -109,14 +109,45 @@
 
             @role('Teacher')
             <li>
-                <a href="{{ route('teacher.students.view') }}" 
-                   class="flex items-center gap-2 rounded-lg py-2 text-sm font-medium {{ request()->routeIs('teacher.students.view') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}"
-                   :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    <span x-show="!sidebarCollapsed">นักเรียนในที่ปรึกษา</span>
-                </a>
+                @php
+                    $teacher = auth()->user()->teacher;
+                    $advisedGroups = $teacher ? $teacher->advisedClassGroups : collect();
+                @endphp
+                <details class="group [&_summary::-webkit-details-marker]:hidden" {{ request()->routeIs('teacher.students.view') ? 'open' : '' }}>
+                    <summary class="flex cursor-pointer items-center justify-between rounded-lg px-4 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="text-sm font-medium"> นักเรียนในที่ปรึกษา </span>
+                        </div>
+                        <span x-show="!sidebarCollapsed" class="shrink-0 transition duration-300 group-open:-rotate-180">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                    </summary>
+                    <ul x-show="!sidebarCollapsed"
+                        x-transition:enter="transition-all ease-in-out duration-300"
+                        x-transition:enter-start="opacity-0 max-h-0"
+                        x-transition:enter-end="opacity-100 max-h-screen"
+                        class="mt-2 space-y-1 overflow-hidden px-4">
+                        <li>
+                            <a href="{{ route('teacher.students.view') }}" 
+                               class="block rounded-lg px-4 py-2 text-sm font-medium {{ (request()->routeIs('teacher.students.view') && !request()->route('groupId')) ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
+                                ทั้งหมด
+                            </a>
+                        </li>
+                        @foreach($advisedGroups as $group)
+                            <li>
+                                <a href="{{ route('teacher.students.view', ['groupId' => $group->id]) }}" 
+                                   class="block rounded-lg px-4 py-2 text-sm font-medium {{ (request()->route('groupId') == $group->id) ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}">
+                                    {{ $group->course_group_name }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
             </li>
             @endrole
 
@@ -228,6 +259,17 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     <span x-show="!sidebarCollapsed">Import Excel Data</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('registrar.registration-status.index') }}" 
+                   title="ตรวจสอบการลงทะเบียน"
+                   class="flex items-center gap-2 rounded-lg py-2 text-sm font-medium {{ request()->routeIs('registrar.registration-status.*') ? 'bg-gray-100 text-gray-700' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' }}"
+                   :class="sidebarCollapsed ? 'justify-center px-2' : 'px-4'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span x-show="!sidebarCollapsed">ตรวจสอบการลงทะเบียน</span>
                 </a>
             </li>
 

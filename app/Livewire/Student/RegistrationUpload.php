@@ -36,16 +36,33 @@ class RegistrationUpload extends Component
         return view('livewire.student.registration-upload');
     }
 
-    public function upload()
+    public function saveRegistration()
     {
-        $this->validate();
+        \Illuminate\Support\Facades\Log::info('saveRegistration started');
+        
+        try {
+            $this->validate();
+            \Illuminate\Support\Facades\Log::info('Validation passed');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Validation failed: ' . $e->getMessage());
+            throw $e;
+        }
 
         if (!$this->activeSemester) {
+            \Illuminate\Support\Facades\Log::warning('No active semester');
             $this->dispatch('swal:error', message: 'No active semester found.');
             return;
         }
 
-        $student = Student::where('user_id', Auth::id())->firstOrFail();
+        $student = Student::where('user_id', Auth::id())->first();
+        
+        if (!$student) {
+            \Illuminate\Support\Facades\Log::error('Student not found for user ID: ' . Auth::id());
+            $this->dispatch('swal:error', message: 'Student record not found.');
+            return;
+        }
+
+        \Illuminate\Support\Facades\Log::info('Processing registration for student: ' . $student->id);
 
         // Check if already registered for this semester
         $existing = Registration::where('student_id', $student->id)
@@ -54,34 +71,44 @@ class RegistrationUpload extends Component
             ->first();
 
         if ($existing && $existing->status === 'approved') {
+            \Illuminate\Support\Facades\Log::info('Registration already approved');
             $this->dispatch('swal:error', message: 'You have already registered for this semester.');
             return;
         }
 
-        $registrationCardPath = $this->registration_card_file->store('registration_cards', 'public');
-        $slipPath = $this->slip_file_name->store('slips', 'public');
+        try {
+            $registrationCardPath = $this->registration_card_file->store('registration_cards', 'public');
+            $slipPath = $this->slip_file_name->store('slips', 'public');
+            
+            \Illuminate\Support\Facades\Log::info('Files stored: ' . $registrationCardPath . ' and ' . $slipPath);
 
-        if ($existing) {
-            // Update existing if rejected or pending
-            $existing->update([
-                'status' => 'pending',
-                'registration_card_file' => $registrationCardPath,
-                'slip_file_name' => $slipPath,
-            ]);
-        } else {
-            Registration::create([
-                'student_id' => $student->id,
-                'semester' => $this->activeSemester->semester,
-                'year' => $this->activeSemester->year,
-                'status' => 'pending',
-                'registration_card_file' => $registrationCardPath,
-                'slip_file_name' => $slipPath,
-            ]);
+            if ($existing) {
+                $existing->update([
+                    'status' => 'pending',
+                    'registration_card_file' => $registrationCardPath,
+                    'slip_file_name' => $slipPath,
+                ]);
+                \Illuminate\Support\Facades\Log::info('Updated existing registration ID: ' . $existing->id);
+            } else {
+                $newReg = Registration::create([
+                    'student_id' => $student->id,
+                    'semester' => $this->activeSemester->semester,
+                    'year' => $this->activeSemester->year,
+                    'status' => 'pending',
+                    'registration_card_file' => $registrationCardPath,
+                    'slip_file_name' => $slipPath,
+                ]);
+                \Illuminate\Support\Facades\Log::info('Created new registration ID: ' . $newReg->id);
+            }
+
+            $this->dispatch('swal:success', message: 'Documents uploaded successfully.');
+            $this->reset(['registration_card_file', 'slip_file_name']);
+            $this->loadRegistrations();
+            
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error saving registration: ' . $e->getMessage());
+            $this->dispatch('swal:error', message: 'Failed to save registration: ' . $e->getMessage());
         }
-
-        $this->dispatch('swal:success', message: 'Documents uploaded successfully.');
-        $this->reset(['registration_card_file', 'slip_file_name']);
-        $this->loadRegistrations();
     }
 
     public function downloadPdf($id)

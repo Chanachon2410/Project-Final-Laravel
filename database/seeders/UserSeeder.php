@@ -30,5 +30,13 @@ class UserSeeder extends Seeder
                 $user->assignRole($role);
             }
         }
+
+        // Create specific Bachelor Student
+        $bachelorUser = \App\Models\User::factory()->create([
+            'username' => 'bachelor1',
+            'email' => 'bachelor1@app.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('1234'),
+        ]);
+        $bachelorUser->assignRole('Student');
     }
 }

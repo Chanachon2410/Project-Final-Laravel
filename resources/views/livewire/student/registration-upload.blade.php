@@ -21,10 +21,16 @@
 
             <div class="bg-white shadow rounded-lg p-6 mb-8">
                 <h2 class="text-lg font-medium mb-4">อัปโหลดเอกสารหลักฐาน</h2>
-                <form wire:submit.prevent="upload">
+                <form wire:submit.prevent="saveRegistration">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
+                        <div x-data="{ isUploading: false, progress: 0 }"
+                             x-on:livewire-upload-start="isUploading = true"
+                             x-on:livewire-upload-finish="isUploading = false"
+                             x-on:livewire-upload-error="isUploading = false"
+                             x-on:livewire-upload-progress="progress = $event.detail.progress">
                             <label class="block text-sm font-medium text-gray-700 mb-2">ไฟล์ใบลงทะเบียน (PDF/Image)</label>
+                            
+                            <!-- File Input Area -->
                             <label for="registration_card_file" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 cursor-pointer transition duration-150 ease-in-out">
                                 <div class="space-y-1 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -32,19 +38,40 @@
                                     </svg>
                                     <div class="flex text-sm text-gray-600 justify-center">
                                         <div class="relative font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                            <span>Upload a file</span>
-                                            <input id="registration_card_file" wire:model="registration_card_file" type="file" class="sr-only">
+                                            <span>เลือกไฟล์</span>
+                                            <input id="registration_card_file" wire:model="registration_card_file" type="file" class="sr-only" accept="image/*,application/pdf">
                                         </div>
-                                        <p class="pl-1">or drag and drop</p>
+                                        <p class="pl-1">หรือลากไฟล์มาวางที่นี่</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PNG, JPG, PDF up to 2MB</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF สูงสุด 2MB</p>
                                 </div>
                             </label>
+                            
+                            <!-- Progress Bar -->
+                            <div x-show="isUploading" class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                <div class="bg-indigo-600 h-2.5 rounded-full" :style="`width: ${progress}%`"></div>
+                            </div>
+                            
+                            <!-- File Preview and Remove Button -->
+                            @if ($registration_card_file)
+                                <div class="flex items-center justify-between mt-2 p-2 border rounded-md">
+                                    <p class="text-sm text-gray-700">{{ $registration_card_file->getClientOriginalName() }}</p>
+                                    <button type="button" wire:click="$set('registration_card_file', null)" class="text-red-500 hover:text-red-700 text-sm">
+                                        ลบ
+                                    </button>
+                                </div>
+                            @endif
                             @error('registration_card_file') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
+                        <div x-data="{ isUploading: false, progress: 0 }"
+                             x-on:livewire-upload-start="isUploading = true"
+                             x-on:livewire-upload-finish="isUploading = false"
+                             x-on:livewire-upload-error="isUploading = false"
+                             x-on:livewire-upload-progress="progress = $event.detail.progress">
                             <label class="block text-sm font-medium text-gray-700 mb-2">ไฟล์สลิปโอนเงิน (PDF/Image)</label>
+                            
+                            <!-- File Input Area -->
                             <label for="slip_file_name" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-500 cursor-pointer transition duration-150 ease-in-out">
                                 <div class="space-y-1 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -52,22 +79,46 @@
                                     </svg>
                                     <div class="flex text-sm text-gray-600 justify-center">
                                         <div class="relative font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
-                                            <span>Upload a file</span>
-                                            <input id="slip_file_name" wire:model="slip_file_name" type="file" class="sr-only">
+                                            <span>เลือกไฟล์</span>
+                                            <input id="slip_file_name" wire:model="slip_file_name" type="file" class="sr-only" accept="image/*,application/pdf">
                                         </div>
-                                        <p class="pl-1">or drag and drop</p>
+                                        <p class="pl-1">หรือลากไฟล์มาวางที่นี่</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">PNG, JPG, PDF up to 2MB</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF สูงสุด 2MB</p>
                                 </div>
                             </label>
+                            
+                            <!-- Progress Bar -->
+                            <div x-show="isUploading" class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                                <div class="bg-indigo-600 h-2.5 rounded-full" :style="`width: ${progress}%`"></div>
+                            </div>
+                            
+                            <!-- File Preview and Remove Button -->
+                            @if ($slip_file_name)
+                                <div class="flex items-center justify-between mt-2 p-2 border rounded-md">
+                                    <p class="text-sm text-gray-700">{{ $slip_file_name->getClientOriginalName() }}</p>
+                                    <button type="button" wire:click="$set('slip_file_name', null)" class="text-red-500 hover:text-red-700 text-sm">
+                                        ลบ
+                                    </button>
+                                </div>
+                            @endif
                             @error('slip_file_name') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div class="mt-6 flex justify-end">
-                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" wire:loading.attr="disabled">
+                        <button type="submit" 
+                                class="inline-flex items-center justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition ease-in-out duration-150" 
+                                wire:loading.attr="disabled"
+                                @if(!$registration_card_file || !$slip_file_name) disabled @endif>
                             <span wire:loading.remove>ยืนยันการส่งเอกสาร</span>
-                            <span wire:loading>กำลังอัปโหลด...</span>
+                            <span wire:loading class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                กำลังบันทึก...
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -97,7 +148,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เทอม/ปี</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ส่ง</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เอกสาร</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -112,13 +162,10 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">{{ $registration->created_at->format('d/m/Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button wire:click="downloadPdf({{ $registration->id }})" class="text-indigo-600 hover:text-indigo-900 mr-4">ใบแจ้งยอด (PDF)</button>
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-6 py-4 text-center text-gray-500">ไม่พบประวัติการลงทะเบียน</td>
+                            <td colspan="3" class="px-6 py-4 text-center text-gray-500">ไม่พบประวัติการลงทะเบียน</td>
                         </tr>
                     @endforelse
                 </tbody>
