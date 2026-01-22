@@ -1,6 +1,7 @@
 <style>
     /* CSS เฉพาะหน้า 2 */
     .page2-container {
+        font-family: "Sarabun", sans-serif;
         color: #000;
         line-height: 1.2;
         padding: 7mm;
@@ -18,6 +19,7 @@
         border: 1px solid #000 !important;
         padding: 4px 6px;
         font-size: 10pt;
+        font-family: "Sarabun", sans-serif;
     }
 
     .page2-ref-container {
@@ -33,7 +35,7 @@
         text-align: center;
         line-height: 14px;
         margin-right: -1px;
-        font-family: 'TH Sarabun PSK';
+        font-family: "Sarabun", sans-serif;
         font-size: 10pt;
         font-weight: bold;
         vertical-align: middle;

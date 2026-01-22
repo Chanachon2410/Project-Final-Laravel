@@ -85,15 +85,21 @@ class PaymentStructureForm extends Component
         if (!$value) return;
         $level = Level::find($value);
         if ($level) {
-            if (str_contains($level->name, 'ปวช') || str_contains($level->name, 'ปวส')) {
+            if (str_contains($level->name, 'ปวช')) {
                 $this->late_fee_type = 'flat';
                 $this->late_fee_max_days = null;
-                // Set default rates for vocational
+                // ปวช. เรียนฟรี (ปกติไม่คิดค่าหน่วยกิต)
+                $this->theoryRate = 0;
+                $this->practicalRate = 0;
+            } elseif (str_contains($level->name, 'ปวส') || str_contains($level->name, 'ชั้นสูง')) {
+                $this->late_fee_type = 'flat';
+                $this->late_fee_max_days = null;
+                // ปวส.
                 $this->theoryRate = 100;
                 $this->practicalRate = 100;
             } elseif (str_contains($level->name, 'ตรี') || str_contains($level->name, 'Bachelor')) {
                 $this->late_fee_type = 'daily';
-                // Set default rates for bachelor
+                // ป.ตรี
                 $this->theoryRate = 150;
                 $this->practicalRate = 200;
             }
@@ -248,21 +254,25 @@ class PaymentStructureForm extends Component
         // Add Theory Fee
         if ($this->totalTheoryCredits > 0) {
             $amount = $this->totalTheoryCredits * $this->theoryRate;
-            $this->fees[] = [
-                'id' => null,
-                'name' => "ค่าลงทะเบียน (ทฤษฎี) หน่วยกิตละ {$this->theoryRate} บาท ({$this->totalTheoryCredits} หน่วยกิต)",
-                'amount' => $amount
-            ];
+            if ($amount > 0) {
+                $this->fees[] = [
+                    'id' => null,
+                    'name' => "ค่าลงทะเบียน (ทฤษฎี) หน่วยกิตละ {$this->theoryRate} บาท ({$this->totalTheoryCredits} หน่วยกิต)",
+                    'amount' => $amount
+                ];
+            }
         }
 
         // Add Practical Fee
         if ($this->totalPracticalCredits > 0) {
             $amount = $this->totalPracticalCredits * $this->practicalRate;
-            $this->fees[] = [
-                'id' => null,
-                'name' => "ค่าลงทะเบียน (ปฏิบัติ) หน่วยกิตละ {$this->practicalRate} บาท ({$this->totalPracticalCredits} หน่วยกิต)",
-                'amount' => $amount
-            ];
+            if ($amount > 0) {
+                $this->fees[] = [
+                    'id' => null,
+                    'name' => "ค่าลงทะเบียน (ปฏิบัติ) หน่วยกิตละ {$this->practicalRate} บาท ({$this->totalPracticalCredits} หน่วยกิต)",
+                    'amount' => $amount
+                ];
+            }
         }
         
         $this->fees = array_values($this->fees);
@@ -323,7 +333,6 @@ class PaymentStructureForm extends Component
             'year' => $this->year,
             'major_id' => $this->major_id,
             'level_id' => $this->level_id,
-            'company_code' => '81245',
             'custom_ref2' => $this->custom_ref2,
             'payment_start_date' => $this->payment_start_date,
             'payment_end_date' => $this->payment_end_date,

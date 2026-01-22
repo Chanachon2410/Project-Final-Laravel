@@ -25,50 +25,69 @@ class ImportData extends Component
         set_time_limit(0);
         ini_set('memory_limit', '-1');
 
-        $filePath = $this->file->getRealPath();
+        $originalFilePath = $this->file->getRealPath();
         $extension = strtolower($this->file->getClientOriginalExtension());
-        $tempCsvPath = null;
+        $tempCsvPaths = [];
+
+        // สร้าง Object เดียวเพื่อเก็บยอดรวมจากทุกชีต
+        $importer = new ClassGroupsImport();
+        $sheetCount = 0;
 
         try {
-            // (Step 1: แปลงไฟล์เป็น CSV เหมือนเดิม... ไม่ต้องแก้ส่วนนี้)
             if (in_array($extension, ['xlsx', 'xls'])) {
-                $spreadsheet = IOFactory::load($filePath);
-                $spreadsheet->setActiveSheetIndex(0);
-                $writer = IOFactory::createWriter($spreadsheet, 'Csv');
-                $writer->setDelimiter(',');
-                $writer->setEnclosure('"');
-                $writer->setLineEnding("\r\n");
-                $writer->setSheetIndex(0);
-                $writer->setUseBOM(true);
-                $tempCsvPath = storage_path('app/temp_import_' . time() . '.csv');
-                $writer->save($tempCsvPath);
-                $filePath = $tempCsvPath;
+                // Load Excel file once
+                $spreadsheet = IOFactory::load($originalFilePath);
+                $sheetCount = $spreadsheet->getSheetCount();
+
+                // Loop through all sheets
+                for ($i = 0; $i < $sheetCount; $i++) {
+                    $spreadsheet->setActiveSheetIndex($i);
+                    $sheetName = $spreadsheet->getActiveSheet()->getTitle();
+                    
+                    // Create CSV writer for the current sheet
+                    $writer = IOFactory::createWriter($spreadsheet, 'Csv');
+                    $writer->setDelimiter(',');
+                    $writer->setEnclosure('"');
+                    $writer->setLineEnding("\r\n");
+                    $writer->setSheetIndex($i);
+                    $writer->setUseBOM(true);
+                    
+                    // Unique temp path for this sheet
+                    $tempCsvPath = storage_path('app/temp_import_' . time() . '_sheet_' . $i . '.csv');
+                    $writer->save($tempCsvPath);
+                    $tempCsvPaths[] = $tempCsvPath;
+
+                    // Import this specific sheet's CSV
+                    try {
+                        Excel::import($importer, $tempCsvPath);
+                    } catch (\Exception $e) {
+                        // Log error per sheet but continue others if possible, or just log info
+                        \Illuminate\Support\Facades\Log::warning("Import warning on sheet {$i} ({$sheetName}): " . $e->getMessage());
+                    }
+                }
+            } else {
+                // Handle CSV/TXT directly (single file)
+                $sheetCount = 1;
+                Excel::import($importer, $originalFilePath);
             }
-
-            // ---------------------------------------------------------
-            // 🟢 Step 2: Import และดึงยอดสรุป (แก้ตรงนี้)
-            // ---------------------------------------------------------
-
-            // สร้าง Object ขึ้นมาก่อน เพื่อให้เราเข้าถึงตัวแปร $summary ทีหลังได้
-            $importer = new ClassGroupsImport();
-
-            // สั่ง Import โดยใช้ Object ตัวเดิม
-            Excel::import($importer, $filePath);
 
             // ดึงค่าสรุปออกมา
             $created = $importer->summary['created'];
             $updated = $importer->summary['updated'];
 
-            // แจ้งเตือนแบบละเอียด
-            session()->flash('message', "✅ สำเร็จ! ข้อมูลใหม่: {$created} รายการ | อัปเดตข้อมูลเดิม: {$updated} รายการ");
+            // แจ้งเตือน
+            session()->flash('message', "✅ สำเร็จ! นำเข้าข้อมูลจาก {$sheetCount} ชีต | ข้อมูลใหม่: {$created} รายการ | อัปเดตข้อมูลเดิม: {$updated} รายการ");
 
             $this->reset('file');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Import Error: ' . $e->getMessage());
             session()->flash('error', 'เกิดข้อผิดพลาด: ' . $e->getMessage());
         } finally {
-            if ($tempCsvPath && file_exists($tempCsvPath)) {
-                unlink($tempCsvPath);
+            // Cleanup all temp files
+            foreach ($tempCsvPaths as $path) {
+                if (file_exists($path)) {
+                    unlink($path);
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 <style>
     /* --- CSS เฉพาะหน้า 3 --- */
     .page3-container {
+        font-family: "Sarabun", sans-serif;
         color: #000;
         line-height: 1.2;
         padding: 10mm;
@@ -19,6 +20,7 @@
         border: 1px solid #000 !important;
         padding: 4px 5px;
         vertical-align: middle;
+        font-family: "Sarabun", sans-serif;
     }
 
     /* --- Helper classes --- */
@@ -60,7 +62,7 @@
         text-align: center;
         line-height: 13px;
         margin-right: -1px;
-        font-family: 'TH Sarabun PSK';
+        font-family: "Sarabun", sans-serif;
         font-size: 9pt;
         font-weight: bold;
         vertical-align: middle;

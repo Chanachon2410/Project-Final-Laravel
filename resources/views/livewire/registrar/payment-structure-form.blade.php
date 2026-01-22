@@ -237,6 +237,13 @@
             </div>
 
             {{-- Summary & Rate Settings --}}
+            @php
+                $selectedLevel = $levels->firstWhere('id', $level_id);
+                // ซ่อนส่วนคำนวณเงิน หากเป็น ปวช. (เพราะเรียนฟรี) หรือตาม requirement
+                $hideCalculation = $selectedLevel && str_contains($selectedLevel->name, 'ปวช');
+            @endphp
+
+            @if(!$hideCalculation)
             <div class="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-md">
                 <h3 class="font-semibold text-indigo-800 mb-3">สรุปหน่วยกิตและตั้งค่าราคา (สำหรับคำนวณค่าลงทะเบียน)</h3>
                 
@@ -280,6 +287,7 @@
                     <span class="text-sm text-gray-500">* ยอดเงินนี้จะถูกนำไปสร้างเป็นรายการค่าใช้จ่ายในขั้นตอนถัดไป</span>
                 </div>
             </div>
+            @endif
         </div>
     @endif
 

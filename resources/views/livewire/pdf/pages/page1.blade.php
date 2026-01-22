@@ -1,6 +1,7 @@
 <style>
     /* CSS เฉพาะหน้า 1 */
     .page1-container {
+        font-family: "Sarabun", sans-serif;
         color: #000;
         line-height: 1.4;
         padding: 10mm;
@@ -22,6 +23,7 @@
         border: 1px solid #000 !important;
         padding: 8px 10px;
         font-size: 10pt;
+        font-family: "Sarabun", sans-serif;
     }
 
     .page1-table th {

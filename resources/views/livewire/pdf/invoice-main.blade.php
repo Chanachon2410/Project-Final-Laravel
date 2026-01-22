@@ -7,6 +7,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>ใบแจ้งชำระเงิน_{{ $student_code ?? 'STU' }}</title>
+
     <style>
         /* =========================================
            GLOBAL STYLES (Styles for All Pages)
@@ -16,28 +17,232 @@
             margin: 0;
         }
 
+        /* Define Sarabun Font Family with all weights/styles */
+        /* Thin (100) */
         @font-face {
-            font-family: 'TH Sarabun PSK';
+            font-family: 'Sarabun';
             font-style: normal;
-            font-weight: normal;
-            src: url("{{ public_path('fonts/THSarabunPSK.ttf') }}") format('truetype');
+            font-weight: 100;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Thin.ttf') : asset('fonts/Sarabun-Thin.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 100;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ThinItalic.ttf') : asset('fonts/Sarabun-ThinItalic.ttf') }}") format('truetype');
         }
 
+        /* ExtraLight (200) */
         @font-face {
-            font-family: 'TH Sarabun PSK';
+            font-family: 'Sarabun';
             font-style: normal;
+            font-weight: 200;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraLight.ttf') : asset('fonts/Sarabun-ExtraLight.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 200;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraLightItalic.ttf') : asset('fonts/Sarabun-ExtraLightItalic.ttf') }}") format('truetype');
+        }
+
+        /* Light (300) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 300;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Light.ttf') : asset('fonts/Sarabun-Light.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 300;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-LightItalic.ttf') : asset('fonts/Sarabun-LightItalic.ttf') }}") format('truetype');
+        }
+
+        /* Regular (400) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 400;
+            font-weight: normal;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Regular.ttf') : asset('fonts/Sarabun-Regular.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 400;
+            font-weight: normal;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Italic.ttf') : asset('fonts/Sarabun-Italic.ttf') }}") format('truetype');
+        }
+
+        /* Medium (500) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 500;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Medium.ttf') : asset('fonts/Sarabun-Medium.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 500;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-MediumItalic.ttf') : asset('fonts/Sarabun-MediumItalic.ttf') }}") format('truetype');
+        }
+
+        /* SemiBold (600) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 600;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-SemiBold.ttf') : asset('fonts/Sarabun-SemiBold.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 600;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-SemiBoldItalic.ttf') : asset('fonts/Sarabun-SemiBoldItalic.ttf') }}") format('truetype');
+        }
+
+        /* Bold (700) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 700;
             font-weight: bold;
-            src: url("{{ public_path('fonts/THSarabunPSK-Bold.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Bold.ttf') : asset('fonts/Sarabun-Bold.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 700;
+            font-weight: bold;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-BoldItalic.ttf') : asset('fonts/Sarabun-BoldItalic.ttf') }}") format('truetype');
+        }
+
+        /* ExtraBold (800) */
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: normal;
+            font-weight: 800;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraBold.ttf') : asset('fonts/Sarabun-ExtraBold.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'Sarabun';
+            font-style: italic;
+            font-weight: 800;
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraBoldItalic.ttf') : asset('fonts/Sarabun-ExtraBoldItalic.ttf') }}") format('truetype');
+        }
+
+        .sarabun-thin {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 100;
+            font-style: normal;
+        }
+
+        .sarabun-extralight {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 200;
+            font-style: normal;
+        }
+
+        .sarabun-light {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        .sarabun-regular {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        .sarabun-medium {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        .sarabun-semibold {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        .sarabun-bold {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .sarabun-extrabold {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        .sarabun-thin-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 100;
+            font-style: italic;
+        }
+
+        .sarabun-extralight-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 200;
+            font-style: italic;
+        }
+
+        .sarabun-light-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        .sarabun-regular-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .sarabun-medium-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        .sarabun-semibold-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        .sarabun-bold-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        .sarabun-extrabold-italic {
+            font-family: "Sarabun", sans-serif;
+            font-weight: 800;
+            font-style: italic;
         }
 
         body {
-            font-family: 'TH Sarabun PSK';
+            font-family: "Sarabun", sans-serif;
             font-size: 14pt;
             line-height: 1.1;
             margin: 0;
             padding: 0;
             color: #333333;
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Ensure tables inherit font family in PDF */
+        table, th, td {
+            font-family: "Sarabun", sans-serif;
         }
 
         .pdf-page {
