@@ -119,9 +119,9 @@
                     <table class="w-full" style="border: none; font-size: 9.5pt;">
                         @if (isset($all_majors) && count($all_majors) > 0)
                             {{-- แปลงเป็น Collection ถ้ายังไม่ได้เป็น เพื่อใช้ chunk --}}
-                            @php 
-                                $majorsCollection = collect($all_majors); 
-                                $chunks = $majorsCollection->chunk(3); 
+                            @php
+                                $majorsCollection = collect($all_majors);
+                                $chunks = $majorsCollection->chunk(3);
                             @endphp
                             @foreach ($chunks as $chunk)
                                 <tr style="border: none;">
@@ -168,13 +168,16 @@
                         </tr>
                         <tr>
                             <td class="text-center">3</td>
-                            <td>ค่าปรับลงทะเบียนล่าช้า (เหตุชำระหลังวันที่ {{ $late_fee_props['header_date'] ?? 'กำหนด' }})</td>
+                            <td>ค่าปรับลงทะเบียนล่าช้า (เหตุชำระหลังวันที่
+                                {{ $late_fee_props['header_date'] ?? 'กำหนด' }})</td>
                             <td class="text-right"></td>
                         </tr>
                         <tr class="font-bold">
-                            <td colspan="2" class="text-center" style="vertical-align: bottom; padding: 25px 5px 5px 5px;">
+                            <td colspan="2" class="text-center"
+                                style="vertical-align: bottom; padding: 25px 5px 5px 5px;">
                                 เงินสด (ตัวอักษร)
-                                .................................................................................................... รวม
+                                ....................................................................................................
+                                รวม
                             </td>
                             <td class="text-right" style="vertical-align: bottom; padding-bottom: 5px;"></td>
                         </tr>
@@ -324,7 +327,8 @@
                         <td
                             style="width: 45%; border-right: 1px solid #000; padding: 5px; vertical-align: top; height: 100px; position: relative;">
                             <div style="font-size: 10pt;">เงินสด (ตัวอักษร)</div>
-                            <div style="text-align: center; position: absolute; bottom: 8px; width: 95%; font-size: 10pt;">
+                            <div
+                                style="text-align: center; position: absolute; bottom: 8px; width: 95%; font-size: 10pt;">
                                 ............................................................................................
                             </div>
                         </td>
@@ -349,28 +353,18 @@
                     </tr>
                 </table>
 
-                <div style="text-align: center; padding: 5px 0 0 0; font-size: 9pt; line-height: 1.4;">
-                    @if(isset($payment_normal_range) && $payment_normal_range != '-')
-                        <div>
-                            ***สามารถนำใบนำฝากนี้ไปชำระเงินได้ที่ธนาคารกรุงไทยทุกสาขา*** 
-                            ภายในวันที่ {{ $payment_normal_range }} 
-                            จำนวนเงิน {{ number_format($total_amount ?? 0, 0) }}.- บาท
-                        </div>
+                <div style="text-align: center; padding: 5px 0 0 0; font-size: 9pt;">
+                    ***กำหนดชำระเงินที่ธนาคารกรุงไทยทุกสาขา ตั้งแต่วันที่
+
+                    @if (isset($payment_normal_range) && $payment_normal_range != '-')
+                        {{ $payment_normal_range }}
                     @endif
 
-                    @if(isset($late_fee_props) && $late_fee_props['show'])
-                        <div style="margin-top: 2px;">
-                            @if($late_fee_props['type'] == 'daily')
-                                ***(ลงทะเบียนล่าช้า) ภายในวันที่ {{ $late_fee_range }} 
-                                คิดค่าปรับล่าช้าวันละ {{ $late_fee_props['amount_flat'] }} บาท 
-                                (สูงสุด {{ $late_fee_props['max_days'] ?? 15 }} วัน)***
-                            @else
-                                ***(ลงทะเบียนล่าช้า) สามารถนำใบนำฝากนี้ไปชำระเงินได้ที่ธนาคารกรุงไทยทุกสาขา*** 
-                                ภายในวันที่ {{ $late_fee_range }} 
-                                จำนวนเงิน {{ number_format($grand_total ?? 0, 0) }}.- บาท
-                            @endif
-                        </div>
+                    @if (isset($late_fee_props) && $late_fee_props['show'])
+                        ถึง {{ $late_fee_range }} (มีค่าปรับ)
                     @endif
+
+                    เท่านั้น***
                 </div>
             </div>
         @endif

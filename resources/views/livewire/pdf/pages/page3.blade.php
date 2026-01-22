@@ -108,32 +108,32 @@
         <table
             style="width: 100%; margin-top: 3px; font-size: 7.5pt; border: none !important; border-collapse: collapse;">
             <tr>
-                <td style="border: none !important; padding: 2px 0; width: 30%;">
+                <td style="border: none !important; padding: 2px 0; width: 20%;">
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">ประเภทวิชา</span>
                         <span
                             style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center;">&nbsp;</span>
                     </div>
                 </td>
-                <td style="border: none !important; padding: 2px 0; width: 30%; padding-left: 10px;">
+                <td style="border: none !important; padding: 2px 0; width: 35%; padding-left: 10px;">
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">สาขาวิชา</span>
                         <span
-                            style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center;">{{ $major_name }}</span>
+                            style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center; white-space: nowrap;">{{ $major_name }}</span>
                     </div>
                 </td>
-                <td style="border: none !important; padding: 2px 0; width: 30%; padding-left: 10px;">
+                <td style="border: none !important; padding: 2px 0; width: 20%; padding-left: 10px;">
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">สาขางาน</span>
                         <span
                             style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center;">&nbsp;</span>
                     </div>
                 </td>
-                <td style="border: none !important; padding: 2px 0; width: 10%; padding-left: 10px;">
+                <td style="border: none !important; padding: 2px 0; width: 25%; padding-left: 10px;">
                     <div style="display: flex; align-items: flex-end;">
                         <span style="white-space: nowrap;">ชั้น</span>
                         <span
-                            style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center;">{{ $level_name }}</span>
+                            style="border-bottom: 1px dotted #000; flex-grow: 1; margin-left: 5px; text-align: center; white-space: nowrap;">{{ $level_name }}</span>
                     </div>
                 </td>
             </tr>

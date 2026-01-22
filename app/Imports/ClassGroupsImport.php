@@ -21,7 +21,6 @@ class ClassGroupsImport implements ToCollection, WithStartRow
     private $majors;
     private $teachers;
 
-    // 🟢 เพิ่มตัวแปรเก็บยอดสรุป (Public เพื่อให้ Livewire ดึงไปใช้ได้)
     public $summary = [
         'created' => 0,
         'updated' => 0,
@@ -29,6 +28,10 @@ class ClassGroupsImport implements ToCollection, WithStartRow
 
     public function __construct()
     {
+        // ปลดล็อกเวลา Timeout (สำคัญมากสำหรับ 119 ชีต)
+        ini_set('max_execution_time', 0);
+        set_time_limit(0);
+
         $this->levels = Level::all()->keyBy('name');
         $this->majors = Major::all();
         $this->teachers = Teacher::with('user')->get()->keyBy(function ($teacher) {
@@ -43,8 +46,7 @@ class ClassGroupsImport implements ToCollection, WithStartRow
 
     public function collection(Collection $rows)
     {
-        Log::info("--- เริ่มต้น Import ---");
-
+        // เช็ค Header
         if (!isset($rows[6]) || !isset($rows[7])) {
             return;
         }
@@ -56,95 +58,168 @@ class ClassGroupsImport implements ToCollection, WithStartRow
 
         if (!$courseGroupCode) return;
 
-        // --- Prepare Metadata ---
-        $level = $this->getOrCreateLevel($classInfoString);
-        $major = $this->getExistingMajorOrTemp($majorString, $classInfoString);
-        $teacher = $this->getOrCreateTeacher($teacherFullName);
+        try {
+            // --- Prepare Metadata ---
+            $level = $this->getOrCreateLevel($classInfoString);
 
-        // --- Class Group ---
-        $classGroup = ClassGroup::updateOrCreate(
-            ['course_group_code' => $courseGroupCode],
-            [
-                'course_group_name'  => $majorString,
-                'level_id'           => $level->id,
-                'level_year'         => $this->extractLevelYear($level->name),
-                'class_room'         => $this->extractClassRoom($classInfoString),
-                'major_id'           => $major->id,
-                'teacher_advisor_id' => $teacher ? $teacher->id : null,
-            ]
-        );
+            // ค้นหา Major (แก้ไข Logic แล้ว)
+            $major = $this->getExistingMajorOrTemp($majorString, $classInfoString);
 
-        $studentRows = $rows->slice(10);
-        foreach ($studentRows as $row) {
-            $studentCode = trim($row[2] ?? '');
-            $fullName    = trim($row[3] ?? '');
-            if (!$studentCode || !$fullName) continue;
+            $teacher = $this->getOrCreateTeacher($teacherFullName);
 
-            $citizenId = isset($row[1]) ? str_replace([' ', '-'], '', $row[1]) : null;
-            $nameParts = $this->parseName($fullName);
-
-            // 1. User: เปลี่ยนเป็น updateOrCreate เพื่อให้ Password อัปเดตตาม Excel เสมอ
-            $user = User::updateOrCreate(
-                ['username' => $studentCode],
+            // --- Class Group ---
+            $classGroup = ClassGroup::updateOrCreate(
+                ['course_group_code' => $courseGroupCode],
                 [
-                    'email'      => $studentCode . '@student.example.com',
-                    'password'   => Hash::make($citizenId), // อัปเดตพาสเวิร์ดตามบัตร ปชช ล่าสุด
+                    'course_group_name'  => $majorString,
+                    'level_id'           => $level->id,
+                    'level_year'         => $this->extractLevelYear($level->name),
+                    'class_room'         => $this->extractClassRoom($classInfoString),
+                    'major_id'           => $major->id,
+                    'teacher_advisor_id' => $teacher ? $teacher->id : null,
                 ]
             );
 
-            if (!$user->hasRole('student')) {
-                $user->assignRole('student');
-            }
+            // --- Students ---
+            $studentRows = $rows->slice(10);
+            foreach ($studentRows as $row) {
+                $studentCode = trim($row[2] ?? '');
+                $fullName    = trim($row[3] ?? '');
 
-            // 2. Student
-            $student = Student::updateOrCreate(
-                ['student_code' => $studentCode],
-                [
-                    'title'          => $nameParts['title'],
-                    'firstname'      => $nameParts['firstname'],
-                    'lastname'       => $nameParts['lastname'],
-                    'citizen_id'     => $citizenId,
-                    'class_group_id' => $classGroup->id,
-                    'level_id'       => $level->id,
-                    'user_id'        => $user->id,
-                ]
-            );
+                if (!$studentCode || !$fullName) continue;
 
-            // 🟢 เช็คว่า "สร้างใหม่" หรือ "อัปเดต"
-            if ($student->wasRecentlyCreated) {
-                $this->summary['created']++;
-            } else {
-                $this->summary['updated']++;
+                $citizenId = isset($row[1]) ? str_replace([' ', '-'], '', $row[1]) : null;
+                $nameParts = $this->parseName($fullName);
+
+                // 1. User
+                $user = User::updateOrCreate(
+                    ['username' => $studentCode],
+                    [
+                        'email'    => $studentCode . '@student.example.com',
+                        'password' => Hash::make($citizenId),
+                    ]
+                );
+
+                if (!$user->hasRole('student')) {
+                    $user->assignRole('student');
+                }
+
+                // 2. Student
+                $student = Student::updateOrCreate(
+                    ['student_code' => $studentCode],
+                    [
+                        'title'          => $nameParts['title'],
+                        'firstname'      => $nameParts['firstname'],
+                        'lastname'       => $nameParts['lastname'],
+                        'citizen_id'     => $citizenId,
+                        'class_group_id' => $classGroup->id,
+                        'level_id'       => $level->id,
+                        'user_id'        => $user->id,
+                    ]
+                );
+
+                if ($student->wasRecentlyCreated) {
+                    $this->summary['created']++;
+                } else {
+                    $this->summary['updated']++;
+                }
             }
+        } catch (\Exception $e) {
+            // Log Error แต่ไม่ throw เพื่อให้ชีตถัดไปทำงานต่อได้
+            Log::error("❌ ข้ามชีต {$courseGroupCode} เนื่องจาก: " . $e->getMessage());
         }
     }
 
-    // --- Helper Methods (เหมือนเดิมเป๊ะ ไม่ต้องแก้) ---
+    // --- Helper Methods (แก้ตรงนี้!) ---
+
     private function getExistingMajorOrTemp($majorString, $classInfoString)
     {
+        // ❌ ลบอันเก่าที่ทำให้ 'เ' หายออกไป
+        // ✅ ใช้แค่ trim ปกติพอ
         $inputName = trim($majorString);
-        $exactMatch = $this->majors->firstWhere('major_name', $inputName);
-        if ($exactMatch) return $exactMatch;
+
+        // 2. Determine Target Prefix
         $targetPrefix = '';
+        $isPwsOrBachelor = false;
+
         if (str_contains($classInfoString, 'ปวช')) {
             $targetPrefix = '2';
         } elseif (str_contains($classInfoString, 'ปวส')) {
             $targetPrefix = '3';
+            $isPwsOrBachelor = true;
+        } elseif (str_contains($classInfoString, 'ป.ตรี') || str_contains($classInfoString, 'ปริญญาตรี')) {
+            $targetPrefix = '4';
+            $isPwsOrBachelor = true;
         }
-        $keyword = trim(preg_replace('/[0-9]+/', '', $inputName));
-        $foundMajor = $this->majors->first(function ($item) use ($keyword, $targetPrefix) {
-            $nameMatch = str_contains($item->major_name, $keyword);
-            $codeMatch = true;
-            if ($targetPrefix) {
-                $codeMatch = str_starts_with($item->major_code, $targetPrefix);
-            }
+
+        // 3. Resolve Name Mappings
+        $resolvedName = $this->resolveMajorName($inputName, $isPwsOrBachelor);
+
+        // 4. Find in Database
+        $foundMajor = $this->majors->first(function ($item) use ($resolvedName, $targetPrefix) {
+            $nameMatch = $item->major_name === $resolvedName;
+            $codeMatch = $targetPrefix ? str_starts_with($item->major_code, $targetPrefix) : true;
             return $nameMatch && $codeMatch;
         });
-        if ($foundMajor) return $foundMajor;
-        $newMajor = Major::create(['major_name' => $inputName, 'major_code' => 'TEMP-' . strtoupper(Str::random(6))]);
-        $this->majors->push($newMajor);
-        return $newMajor;
+
+        // Priority 2: Name Only
+        if (!$foundMajor) {
+            $foundMajor = $this->majors->first(function ($item) use ($resolvedName) {
+                return $item->major_name === $resolvedName;
+            });
+        }
+
+        if ($foundMajor) {
+            return $foundMajor;
+        }
+
+        throw new \Exception("ไม่พบสาขาวิชา: '{$majorString}' (แปลงเป็น: '{$resolvedName}')");
     }
+
+    private function resolveMajorName($name, $isPwsOrBachelor)
+    {
+        // ✅ เพิ่ม 'u' flag ท้าย Regex เพื่อรองรับ UTF-8 (ภาษาไทย)
+        // ลบตัวเลขท้ายคำ เช่น "การบัญชี 1" -> "การบัญชี"
+        $cleanName = trim(preg_replace('/\s+\d+$/u', '', $name));
+
+        // Mapping ชื่อเฉพาะ
+        if (str_contains($name, 'ธุรกิจค้าปลีกสมัยใหม่')) {
+            return $isPwsOrBachelor ? 'การจัดการธุรกิจค้าปลีก' : 'ธุรกิจค้าปลีก';
+        }
+        if (str_contains($name, 'ภาษาต่างประเทศ')) {
+            return 'ภาษาต่างประเทศธุรกิจบริการ';
+        }
+        if (str_contains($name, 'คอมพิวเตอร์ธุรกิจ')) {
+            return 'เทคโนโลยีธุรกิจดิจิทัล';
+        }
+        if (str_contains($name, 'ธุรกิจอาหารและบริการ')) {
+            return 'อาหารและโภชนาการ';
+        }
+        if (str_contains($name, 'คอมพิวเตอร์กราฟิก')) {
+            return 'ดิจิทัลกราฟิก';
+        }
+        if (str_contains($name, 'แฟชั่นดีไซน์') || str_contains($name, 'เทคโนโลยีแฟชั่นและเครื่องแต่งกาย')) {
+            return $isPwsOrBachelor ? 'เทคโนโลยีออกแบบแฟชั่นและเครื่องแต่งกาย' : 'แฟชั่นและสิ่งทอ';
+        }
+        if (str_contains($name, 'คหกรรมเพื่อการโรงแรม')) {
+            return $isPwsOrBachelor ? 'การบริหารงานคหกรรมศาสตร์' : 'คหกรรมศาสตร์';
+        }
+        if (str_contains($name, 'การออกแบบ')) {
+            return $isPwsOrBachelor ? 'ออกแบบนิเทศศิลป์' : 'การออกแบบ';
+        }
+        // เพิ่ม Case นี้ให้ครับ เผื่อมันมาเป็น "เทคโนโลยีสารสนเทศ 1"
+        if (str_contains($name, 'เทคโนโลยีสารสนเทศ')) {
+            return $isPwsOrBachelor ? 'เทคโนโลยีสารสนเทศ' : 'เทคโนโลยีสารสนเทศ'; // ชื่อเหมือนกันทั้ง ปวช/ปวส แต่รหัสต่างกัน (Logic prefix จะจัดการเอง)
+        }
+        // เพิ่ม Case สำหรับ "เทคโนโลยีธุรกิจดิจิทัล" 
+        if (str_contains($name, 'เทคโนโลยีธุรกิจดิจิทัล')) {
+            return $isPwsOrBachelor ? 'เทคโนโลยีธุรกิจดิจิทัล' : 'เทคโนโลยีธุรกิจดิจิทัล';
+        }
+
+        return $cleanName;
+    }
+
+    // --- ส่วนอื่นเหมือนเดิม ---
     private function parseName(string $fullName): array
     {
         $fullName = trim(preg_replace('/\s+/', ' ', $fullName));
