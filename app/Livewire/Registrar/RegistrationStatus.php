@@ -3,6 +3,7 @@
 namespace App\Livewire\Registrar;
 
 use App\Models\Registration;
+use App\Models\Student;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -36,12 +37,14 @@ class RegistrationStatus extends Component
         $this->resetPage();
     }
 
-    public function viewProof($registrationId)
+    public function viewProof($studentId)
     {
-        $this->selectedRegistration = Registration::with('student')->find($registrationId);
-        
-        if ($this->selectedRegistration) {
-            $this->selectedStudent = $this->selectedRegistration->student;
+        $this->selectedStudent = Student::with(['registrations' => function($q) {
+            $q->latest();
+        }, 'classGroup', 'level'])->find($studentId);
+
+        if ($this->selectedStudent) {
+            $this->selectedRegistration = $this->selectedStudent->registrations->first();
             $this->isShowProofModalOpen = true;
         }
     }
@@ -56,50 +59,87 @@ class RegistrationStatus extends Component
     public function approveRegistration($registrationId)
     {
         $this->updateStatus($registrationId, 'approved');
-        $this->isShowProofModalOpen = false;
+        // $this->isShowProofModalOpen = false; // Keep open or close depending on UX, usually close
     }
 
     public function rejectRegistration($registrationId)
     {
         $this->updateStatus($registrationId, 'rejected');
-        $this->isShowProofModalOpen = false;
     }
 
-    public function updateStatus($registrationId, $status)
+    public function updateStatus($registrationId, $status, $studentId = null)
     {
-        $registration = Registration::find($registrationId);
+        $registration = null;
+
+        if ($registrationId) {
+            $registration = Registration::find($registrationId);
+        } elseif ($studentId) {
+            // Create new registration if not exists
+            $student = Student::find($studentId);
+            if ($student) {
+                // Check if already exists to prevent duplicates via race condition
+                $registration = Registration::where('student_id', $studentId)->latest()->first();
+                if (!$registration) {
+                    $registration = new Registration();
+                    $registration->student_id = $studentId;
+                    // Default fields if needed
+                }
+            }
+        }
+
         if ($registration) {
             $data = ['status' => $status];
             
             if ($status === 'approved') {
                 $user = auth()->user();
-                // Use username or name depending on what's available. Registrar doesn't have a specific profile model yet.
-                $approverName = 'ฝ่ายทะเบียน (' . $user->username . ')';
+                $approverName = 'ฝ่ายทะเบียน (' . ($user->username ?? $user->name) . ')';
                 $data['approved_by'] = $approverName;
             } elseif ($status === 'pending' || $status === 'rejected') {
                 $data['approved_by'] = null;
             }
 
-            $registration->update($data);
+            $registration->fill($data);
+            $registration->save();
+            
+            // Refresh modal data if open
+            if ($this->isShowProofModalOpen && $this->selectedRegistration && $this->selectedRegistration->id == $registration->id) {
+                $this->selectedRegistration = $registration->fresh();
+            }
         }
     }
 
     public function render()
     {
-        $registrations = Registration::with(['student.level', 'student.classGroup'])
-            ->whereHas('student', function ($query) {
-                $query->where('firstname', 'like', '%' . $this->search . '%')
-                    ->orWhere('lastname', 'like', '%' . $this->search . '%')
-                    ->orWhere('student_code', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->statusFilter, function ($query) {
-                $query->where('status', $this->statusFilter);
-            })
-            ->latest()
-            ->paginate($this->perPage);
+        $query = Student::with(['classGroup', 'level', 'registrations' => function($q) {
+            $q->latest();
+        }]);
+
+        // Search
+        if ($this->search) {
+            $query->where(function($q) {
+                $q->where('firstname', 'like', '%' . $this->search . '%')
+                  ->orWhere('lastname', 'like', '%' . $this->search . '%')
+                  ->orWhere('student_code', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        // Status Filter
+        if ($this->statusFilter) {
+            if ($this->statusFilter === 'unregistered') {
+                $query->doesntHave('registrations');
+            } else {
+                $query->whereHas('registrations', function ($q) {
+                    $q->where('status', $this->statusFilter);
+                });
+            }
+        }
+
+        // Sort by Student Code
+        $students = $query->orderBy('student_code', 'asc')
+                          ->paginate($this->perPage);
 
         return view('livewire.registrar.registration-status', [
-            'registrations' => $registrations
+            'students' => $students
         ]);
     }
 }

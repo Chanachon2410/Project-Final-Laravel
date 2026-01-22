@@ -16,9 +16,20 @@ class UserManagement extends Component
 {
     use WithPagination;
 
+    // Search & Pagination controls
+    public $search = '';
+    public $perPage = 10;
+
+    // Modal States
     public $isOpen = false;
+    public $isViewOpen = false;
+
+    // Form Properties
     public $userId;
     public $username, $email, $password, $password_confirmation, $selectedRole;
+
+    // View Profile Property
+    public $viewingUser = null;
 
     protected $rules = [
         'username' => 'required|string|max:255',
@@ -34,10 +45,27 @@ class UserManagement extends Component
         $this->userRepository = $userRepository;
     }
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $users = User::with(['roles'])
+            ->where(function($query) {
+                $query->where('username', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%');
+            })
+            ->paginate($this->perPage);
+
         return view('livewire.admin.user-management', [
-            'users' => $this->userRepository->paginate(10, ['*'], ['roles']),
+            'users' => $users,
             'roles' => Role::all(),
         ]);
     }
@@ -46,6 +74,18 @@ class UserManagement extends Component
     {
         $this->resetInputFields();
         $this->openModal();
+    }
+
+    public function view($id)
+    {
+        $this->viewingUser = User::with(['roles', 'student.classGroup.level', 'teacher'])->find($id);
+        $this->isViewOpen = true;
+    }
+
+    public function closeViewModal()
+    {
+        $this->isViewOpen = false;
+        $this->viewingUser = null;
     }
 
     public function edit($id)
