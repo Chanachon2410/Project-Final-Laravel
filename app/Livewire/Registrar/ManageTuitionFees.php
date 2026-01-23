@@ -24,7 +24,7 @@ class ManageTuitionFees extends Component
 
     protected $rules = [
         'semester' => 'required|integer|min:1|max:3',
-        'year' => 'required|integer|min:2000|max:2100',
+        'year' => 'required|integer|min:2500|max:2600',
         'fee_name' => 'required|string|max:100',
         'rate_money' => 'required|numeric|min:0',
     ];
@@ -44,6 +44,11 @@ class ManageTuitionFees extends Component
     public function updatedPerPage()
     {
         $this->resetPage();
+    }
+
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
     }
 
     public function render()
@@ -93,26 +98,64 @@ class ManageTuitionFees extends Component
 
         if ($this->tuitionFeeId) {
             $this->tuitionFeeRepository->update($this->tuitionFeeId, $data);
-            $this->dispatch('swal:success', message: 'Tuition Fee updated successfully.');
+            $this->dispatch('swal:success', message: 'อัปเดตข้อมูลค่าธรรมเนียมเรียบร้อยแล้ว');
         } else {
             $this->tuitionFeeRepository->create($data);
-            $this->dispatch('swal:success', message: 'Tuition Fee created successfully.');
+            $this->dispatch('swal:success', message: 'เพิ่มข้อมูลค่าธรรมเนียมเรียบร้อยแล้ว');
         }
 
         $this->closeModal();
         $this->resetInputFields();
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'Are you sure you want to delete this tuition fee?');
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'ไม่พบรหัสข้อมูล');
+            return;
+        }
+
+        $tuitionFee = $this->tuitionFeeRepository->findById($id);
+        
+        if ($tuitionFee) {
+            $this->dispatch('swal:confirm', 
+                id: $id,
+                message: "คุณแน่ใจหรือไม่ที่จะลบค่าเทอม: {$tuitionFee->fee_name} (ภาคเรียน {$tuitionFee->semester}/{$tuitionFee->year})?"
+            );
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลค่าเทอม');
+        }
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($id)
+    public function confirmDelete($id = null)
     {
-        $this->tuitionFeeRepository->deleteById($id);
-        $this->dispatch('swal:success', message: 'Tuition Fee deleted successfully.');
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
+        }
+
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'เกิดข้อผิดพลาด: ไม่พบรหัสข้อมูล');
+            return;
+        }
+        
+        try {
+            if ($this->tuitionFeeRepository->deleteById($id)) {
+                $this->dispatch('swal:success', message: 'ลบข้อมูลค่าเทอมเรียบร้อยแล้ว');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่พบข้อมูลค่าเทอมที่ต้องการลบ');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ManageTuitionFees: Deletion failed', ['error' => $e->getMessage()]);
+            
+            // Check for integrity constraint violation
+            if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้เนื่องจากมีการใช้งานอยู่ในส่วนอื่น (เช่น ประวัติการชำระเงิน)');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้: ' . $e->getMessage());
+            }
+        }
     }
 
     private function resetInputFields()

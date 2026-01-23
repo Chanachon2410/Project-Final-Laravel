@@ -5,18 +5,26 @@ namespace App\Livewire\Teacher;
 use App\Models\Semester;
 use App\Models\Student;
 use App\Models\Teacher;
+use App\Models\Registration;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\WithPagination;
 
 #[Layout('layouts.app')]
 class ViewStudents extends Component
 {
-    public $classGroups;
+    use WithPagination;
+
     public $activeSemester;
-    public $selectedGroupId; // Selected group from URL
+    public $selectedGroupId; // Selected group ID
     
-    // For Modal
+    // Filters
+    public $search = '';
+    public $statusFilter = '';
+    public $perPage = 10;
+    
+    // Modal state
     public $isShowProofModalOpen = false;
     public $selectedRegistration = null;
     public $selectedStudent = null;
@@ -25,39 +33,31 @@ class ViewStudents extends Component
     {
         $this->selectedGroupId = $groupId;
         $this->activeSemester = Semester::where('is_active', true)->first();
-        $this->loadData();
     }
 
-    public function loadData()
+    protected function getTeacher()
     {
-        $teacher = Teacher::where('user_id', Auth::id())->first();
+        return Teacher::where('user_id', Auth::id())->first();
+    }
 
-        if ($teacher) {
-            // Fetch Class Groups that this teacher advises
-            $query = $teacher->advisedClassGroups()
-                ->with(['level', 'students' => function ($query) {
-                    $query->orderBy('student_code', 'asc')
-                          ->with(['registrations' => function ($rQuery) {
-                                if ($this->activeSemester) {
-                                    $rQuery->where('semester', $this->activeSemester->semester)
-                                          ->where('year', $this->activeSemester->year);
-                                }
-                          }]);
-                }]);
-            
-            if ($this->selectedGroupId) {
-                $query->where('id', $this->selectedGroupId);
-            }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
 
-            $this->classGroups = $query->get();
-        } else {
-            $this->classGroups = collect();
-        }
+    public function updatingStatusFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSelectedGroupId()
+    {
+        $this->resetPage();
     }
 
     public function viewProof($studentId)
     {
-        $this->selectedStudent = \App\Models\Student::with(['registrations' => function ($query) {
+        $this->selectedStudent = Student::with(['registrations' => function ($query) {
             if ($this->activeSemester) {
                 $query->where('semester', $this->activeSemester->semester)
                       ->where('year', $this->activeSemester->year);
@@ -79,8 +79,8 @@ class ViewStudents extends Component
 
     public function approveRegistration($registrationId)
     {
-        $registration = \App\Models\Registration::find($registrationId);
-        $teacher = Teacher::where('user_id', Auth::id())->first();
+        $registration = Registration::find($registrationId);
+        $teacher = $this->getTeacher();
 
         if ($registration && $teacher) {
             $approverName = $teacher->title . $teacher->firstname . ' ' . $teacher->lastname;
@@ -90,58 +90,100 @@ class ViewStudents extends Component
                 'approved_by' => $approverName
             ]);
             
-            // Refresh data
-            $this->loadData();
-            
-            // Close modal if open (optional)
             $this->isShowProofModalOpen = false;
         }
     }
 
     public function updateStatus($registrationId, $status, $studentId = null)
     {
-        $teacher = Teacher::where('user_id', Auth::id())->first();
+        $teacher = $this->getTeacher();
         if (!$teacher) return;
         
         $approverName = $teacher->title . $teacher->firstname . ' ' . $teacher->lastname;
 
         if ($registrationId) {
-            // Update existing registration
-            $registration = \App\Models\Registration::find($registrationId);
+            $registration = Registration::find($registrationId);
             if ($registration) {
                 $data = ['status' => $status];
-                
                 if ($status === 'approved') {
                      $data['approved_by'] = $approverName;
-                } elseif ($status === 'pending' || $status === 'rejected') {
+                } else {
                      $data['approved_by'] = null;
                 }
-
                 $registration->update($data);
             }
         } elseif ($studentId && $this->activeSemester) {
-            // Create NEW registration (Manual by teacher)
             $data = [
                 'student_id' => $studentId,
                 'semester' => $this->activeSemester->semester,
                 'year' => $this->activeSemester->year,
                 'status' => $status,
-                'registration_card_file' => null, // Allowed by nullable
-                'slip_file_name' => null,       // Allowed by nullable
             ];
-
-             if ($status === 'approved') {
+            if ($status === 'approved') {
                  $data['approved_by'] = $approverName;
             }
-
-            \App\Models\Registration::create($data);
+            Registration::create($data);
         }
-        
-        $this->loadData();
     }
 
     public function render()
     {
-        return view('livewire.teacher.view-students');
+        $teacher = $this->getTeacher();
+        $advisedGroups = collect();
+        
+        if ($teacher) {
+            $advisedGroups = $teacher->advisedClassGroups()->with('level')->get();
+            $advisedGroupIds = $advisedGroups->pluck('id');
+
+            $query = Student::query()
+                ->with(['classGroup', 'level', 'registrations' => function ($q) {
+                    if ($this->activeSemester) {
+                        $q->where('semester', $this->activeSemester->semester)
+                          ->where('year', $this->activeSemester->year);
+                    }
+                }]);
+
+            if ($this->selectedGroupId) {
+                $query->where('class_group_id', $this->selectedGroupId);
+            } else {
+                $query->whereIn('class_group_id', $advisedGroupIds);
+            }
+
+            if ($this->search) {
+                $query->where(function($q) {
+                    $q->where('student_code', 'like', '%' . $this->search . '%')
+                      ->orWhere('firstname', 'like', '%' . $this->search . '%')
+                      ->orWhere('lastname', 'like', '%' . $this->search . '%');
+                });
+            }
+
+            if ($this->statusFilter) {
+                if ($this->statusFilter === 'unregistered') {
+                    $query->whereDoesntHave('registrations', function ($q) {
+                        if ($this->activeSemester) {
+                            $q->where('semester', $this->activeSemester->semester)
+                              ->where('year', $this->activeSemester->year);
+                        }
+                    });
+                } else {
+                    $query->whereHas('registrations', function ($q) {
+                        if ($this->activeSemester) {
+                            $q->where('semester', $this->activeSemester->semester)
+                              ->where('year', $this->activeSemester->year)
+                              ->where('status', $this->statusFilter);
+                        }
+                    });
+                }
+            }
+
+            $students = $query->orderBy('student_code', 'asc')->paginate($this->perPage);
+        } else {
+            $students = Student::where('id', -1)->paginate($this->perPage);
+        }
+
+        return view('livewire.teacher.view-students', [
+            'students' => $students,
+            'advisedGroups' => $advisedGroups
+        ]);
     }
 }

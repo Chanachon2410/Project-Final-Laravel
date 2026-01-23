@@ -14,16 +14,17 @@ class ManageSemesters extends Component
     use WithPagination;
 
     public $isOpen = false;
-    public $semesterId, $semester, $year, $registration_start_date, $registration_end_date, $late_fee_rate, $is_active;
+    public $semesterId, $semester, $year, $registration_start_date, $registration_end_date, $late_registration_start_date, $late_registration_end_date, $is_active;
     public $search = '';
     public $perPage = 10;
 
     protected $rules = [
         'semester' => 'required|integer|in:1,2,3',
-        'year' => 'required|integer',
+        'year' => 'required|integer|min:2500|max:2600',
         'registration_start_date' => 'required|date',
         'registration_end_date' => 'required|date|after:registration_start_date',
-        'late_fee_rate' => 'required|numeric',
+        'late_registration_start_date' => 'required|date|after_or_equal:registration_end_date',
+        'late_registration_end_date' => 'required|date|after:late_registration_start_date',
         'is_active' => 'boolean',
     ];
 
@@ -34,19 +35,36 @@ class ManageSemesters extends Component
         $this->semesterRepository = $semesterRepository;
     }
 
-    public function updatedSearch()
+    public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    public function updatedPerPage()
+    public function updatingPerPage()
     {
         $this->resetPage();
+    }
+
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
+    public function updatedRegistrationEndDate($value)
+    {
+        if ($value) {
+            try {
+                $date = \Carbon\Carbon::parse($value);
+                $this->late_registration_start_date = $date->addDay()->format('Y-m-d');
+            } catch (\Exception $e) {
+                // Ignore invalid date formats
+            }
+        }
     }
 
     public function render()
     {
-        $query = \App\Models\Semester::query();
+        $query = \App\Models\Semester::query()->orderBy('year', 'desc')->orderBy('semester', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -74,7 +92,8 @@ class ManageSemesters extends Component
         $this->year = $semester->year;
         $this->registration_start_date = $semester->registration_start_date->format('Y-m-d');
         $this->registration_end_date = $semester->registration_end_date->format('Y-m-d');
-        $this->late_fee_rate = $semester->late_fee_rate;
+        $this->late_registration_start_date = $semester->late_registration_start_date ? $semester->late_registration_start_date->format('Y-m-d') : '';
+        $this->late_registration_end_date = $semester->late_registration_end_date ? $semester->late_registration_end_date->format('Y-m-d') : '';
         $this->is_active = $semester->is_active;
         $this->openModal();
     }
@@ -88,38 +107,97 @@ class ManageSemesters extends Component
             'year' => $this->year,
             'registration_start_date' => $this->registration_start_date,
             'registration_end_date' => $this->registration_end_date,
-            'late_fee_rate' => $this->late_fee_rate,
+            'late_registration_start_date' => $this->late_registration_start_date,
+            'late_registration_end_date' => $this->late_registration_end_date,
             'is_active' => $this->is_active,
         ];
 
+        // If setting this semester as active, deactivate others
         if ($this->is_active) {
-            $this->semesterRepository->all()->each(function ($sem) {
-                $sem->update(['is_active' => false]);
-            });
+            \App\Models\Semester::where('is_active', true)
+                ->where('id', '!=', $this->semesterId) // Don't update self if editing
+                ->update(['is_active' => false]);
         }
 
         if ($this->semesterId) {
             $this->semesterRepository->update($this->semesterId, $data);
-            $this->dispatch('swal:success', message: 'Semester updated successfully.');
+            $this->dispatch('swal:success', message: 'อัปเดตข้อมูลภาคเรียนสำเร็จ');
         } else {
             $this->semesterRepository->create($data);
-            $this->dispatch('swal:success', message: 'Semester created successfully.');
+            $this->dispatch('swal:success', message: 'เพิ่มข้อมูลภาคเรียนสำเร็จ');
         }
 
         $this->closeModal();
         $this->resetInputFields();
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'Are you sure you want to delete this semester?');
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'ไม่พบรหัสข้อมูล');
+            return;
+        }
+
+        $semester = $this->semesterRepository->findById($id);
+        
+        if ($semester) {
+            $this->dispatch('swal:confirm', 
+                id: $id,
+                message: "คุณแน่ใจหรือไม่ที่จะลบภาคเรียน: {$semester->semester}/{$semester->year}?"
+            );
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลภาคเรียน');
+        }
+    }
+
+    public function toggleStatus($id)
+    {
+        $semester = $this->semesterRepository->findById($id);
+        
+        if ($semester) {
+            $newStatus = !$semester->is_active;
+
+            if ($newStatus) {
+                // If setting to Active, deactivate all others
+                \App\Models\Semester::where('is_active', true)
+                    ->update(['is_active' => false]);
+            }
+
+            $this->semesterRepository->update($id, ['is_active' => $newStatus]);
+            
+            $this->dispatch('swal:success', message: $newStatus ? 'เปิดใช้งานภาคเรียนเรียบร้อยแล้ว' : 'ปิดการใช้งานภาคเรียนเรียบร้อยแล้ว');
+        }
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($semesterId)
+    public function confirmDelete($id = null)
     {
-        $this->semesterRepository->deleteById($semesterId);
-        $this->dispatch('swal:success', message: 'Semester deleted successfully.');
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
+        }
+
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'เกิดข้อผิดพลาด: ไม่พบรหัสข้อมูล');
+            return;
+        }
+        
+        try {
+            if ($this->semesterRepository->deleteById($id)) {
+                $this->dispatch('swal:success', message: 'ลบข้อมูลภาคเรียนสำเร็จ');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่พบข้อมูลภาคเรียนที่ต้องการลบ');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ManageSemesters: Deletion failed', ['error' => $e->getMessage()]);
+            
+            // Check for integrity constraint violation
+            if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้เนื่องจากมีการใช้งานอยู่ในส่วนอื่น (เช่น มีการลงทะเบียนในภาคเรียนนี้)');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้: ' . $e->getMessage());
+            }
+        }
     }
 
     private function resetInputFields()
@@ -129,7 +207,8 @@ class ManageSemesters extends Component
         $this->year = '';
         $this->registration_start_date = '';
         $this->registration_end_date = '';
-        $this->late_fee_rate = '';
+        $this->late_registration_start_date = '';
+        $this->late_registration_end_date = '';
         $this->is_active = false;
     }
 

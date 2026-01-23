@@ -140,31 +140,6 @@
                 </div>
             </div>
             @else
-            <!-- Default User Information (Admin/Teacher/Registrar) -->
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    <h2 class="text-lg font-medium text-gray-900">
-                        {{ __('Personal Information') }}
-                    </h2>
-                    <p class="mt-1 text-sm text-gray-600">
-                        {{ __("Your personal account details.") }}
-                    </p>
-                    <div class="mt-6 space-y-4">
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700">{{ __('Username') }}</label>
-                            <p class="mt-1 text-gray-900">{{ Auth::user()->username }}</p>
-                        </div>
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700">{{ __('Email') }}</label>
-                            <p class="mt-1 text-gray-900">{{ Auth::user()->email }}</p>
-                        </div>
-                        <div>
-                            <label class="block font-medium text-sm text-gray-700">{{ __('Role') }}</label>
-                            <p class="mt-1 text-gray-900 capitalize">{{ Auth::user()->getRoleNames()->first() ?? 'N/A' }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
             @endrole
 
         </div>

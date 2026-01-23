@@ -24,11 +24,11 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $user = Auth::user();
     if ($user->hasRole('Admin')) {
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.users.index');
     } elseif ($user->hasRole('Teacher')) {
-        return redirect()->route('teacher.dashboard');
+        return redirect()->route('teacher.students.view');
     } elseif ($user->hasRole('Registrar')) {
-        return redirect()->route('registrar.dashboard');
+        return redirect()->route('registrar.students.index');
     } elseif ($user->hasRole('Student')) {
         return redirect()->route('student.registration.form');
     }
@@ -36,7 +36,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', \App\Livewire\UserProfile::class)->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -45,7 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Routes
     Route::middleware(['role:Admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', function () {
-            return view('admin.dashboard');
+            return redirect()->route('admin.users.index');
         })->name('dashboard');
 
         Route::get('/users', UserManagement::class)->name('users.index');
@@ -53,25 +53,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Teacher Routes
     Route::middleware(['role:Teacher'])->prefix('teacher')->name('teacher.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('teacher.dashboard');
-        })->name('dashboard');
-
         Route::get('/students/{groupId?}', ViewStudents::class)->name('students.view');
     });
 
     // Registrar Routes
     Route::middleware(['role:Registrar'])->prefix('registrar')->name('registrar.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('registrar.dashboard');
-        })->name('dashboard');
-
         Route::get('/import-data', \App\Livewire\Registrar\ImportData::class)->name('import-data.index');
 
         Route::get('/majors', ManageMajors::class)->name('majors.index');
         Route::get('/subjects', ManageSubjects::class)->name('subjects.index');
         Route::get('/class-groups', ManageClassGroups::class)->name('class-groups.index');
         Route::get('/teachers-info', \App\Livewire\Registrar\TeacherInfo::class)->name('teachers-info.index');
+        Route::get('/registrars', \App\Livewire\Registrar\ManageRegistrars::class)->name('registrars.index');
         Route::get('/semesters', ManageSemesters::class)->name('semesters.index');
         Route::get('/tuition-fees', ManageTuitionFees::class)->name('tuition-fees.index');
         Route::get('/payment-structures', PaymentStructureList::class)->name('payment-structures.index');
@@ -83,10 +76,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Student Routes
     Route::middleware(['role:Student'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('student.dashboard');
-        })->name('dashboard');
-
         Route::get('/registration/form', RegistrationForm::class)->name('registration.form'); // หน้าเลือกใบแจ้งหนี้/Preview
         Route::get('/registration/upload', RegistrationUpload::class)->name('registration.upload');
     });

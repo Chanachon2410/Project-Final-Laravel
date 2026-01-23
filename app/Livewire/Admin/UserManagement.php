@@ -55,6 +55,11 @@ class UserManagement extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     public function render()
     {
         $users = User::with(['roles'])
@@ -133,9 +138,13 @@ class UserManagement extends Component
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($userId)
+    public function confirmDelete($id = null)
     {
-        $this->userRepository->deleteById($userId);
+        if (!$id) {
+            return;
+        }
+
+        $this->userRepository->deleteById($id);
         $this->dispatch('swal:success', message: 'User deleted successfully.');
     }
 

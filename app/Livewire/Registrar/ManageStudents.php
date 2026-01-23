@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
 class ManageStudents extends Component
@@ -38,6 +39,11 @@ class ManageStudents extends Component
     public function updatingPerPage(): void
     {
         $this->resetPage();
+    }
+
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
     }
 
     public $isModalOpen = false;
@@ -116,7 +122,7 @@ class ManageStudents extends Component
             'citizen_id' => $this->citizen_id,
         ]);
 
-        session()->flash('message', 'Student created successfully.');
+        $this->dispatch('swal:success', message: 'เพิ่มข้อมูลนักเรียนเรียบร้อยแล้ว');
         $this->closeModal();
         $this->resetInputFields();
     }
@@ -172,28 +178,71 @@ class ManageStudents extends Component
             'citizen_id' => $this->citizen_id,
         ]);
 
-        session()->flash('message', 'Student updated successfully.');
+        $this->dispatch('swal:success', message: 'อัปเดตข้อมูลนักเรียนเรียบร้อยแล้ว');
         $this->closeModal();
         $this->resetInputFields();
     }
 
-    public function confirmDelete($id)
+    public function delete($id = null)
     {
-        $this->studentIdToDelete = $id;
-        $this->confirmingDeletion = true;
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'ไม่พบรหัสข้อมูล');
+            return;
+        }
+
+        $student = Student::find($id);
+        if ($student) {
+            $this->dispatch('swal:confirm', 
+                id: $id,
+                message: "คุณแน่ใจหรือไม่ที่จะลบข้อมูลของ {$student->firstname} {$student->lastname}?"
+            );
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลนักเรียน');
+        }
     }
 
-    public function delete()
+    #[On('delete-confirmed')]
+    public function confirmDelete($id = null)
     {
-        $student = Student::find($this->studentIdToDelete);
-        if ($student) {
-            $user = $student->user;
-            $student->delete();
-            if ($user) $user->delete();
-            session()->flash('message', 'Student deleted successfully.');
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
         }
-        $this->confirmingDeletion = false;
-        $this->studentIdToDelete = null;
+
+        \Illuminate\Support\Facades\Log::info('ManageStudents: Attempting deletion', ['id' => $id]);
+
+        if (!$id) {
+             $this->dispatch('swal:error', message: 'เกิดข้อผิดพลาด: ไม่พบรหัสข้อมูล');
+             return;
+        }
+
+        try {
+            $student = Student::find($id);
+            if ($student) {
+                $user = $student->user;
+                
+                // Delete student first (child)
+                $student->delete();
+                
+                // Delete user if exists (parent)
+                if ($user) {
+                    $user->delete();
+                }
+
+                $this->dispatch('swal:success', message: 'ลบข้อมูลนักเรียนและบัญชีผู้ใช้เรียบร้อยแล้ว');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่พบข้อมูลนักเรียนที่ต้องการลบ');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ManageStudents: Deletion failed', ['error' => $e->getMessage()]);
+            
+             // Check for integrity constraint violation
+            if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้เนื่องจากมีการใช้งานอยู่ในส่วนอื่น (เช่น การลงทะเบียน)');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้: ' . $e->getMessage());
+            }
+        }
     }
 
     public function closeModal()

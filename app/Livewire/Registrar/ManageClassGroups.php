@@ -98,6 +98,11 @@ class ManageClassGroups extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     public function create()
     {
         $this->resetInputFields();
@@ -145,26 +150,64 @@ class ManageClassGroups extends Component
 
         if ($this->classGroupId) {
             $this->classGroupRepository->update($this->classGroupId, $data);
-            $this->dispatch('swal:success', message: 'Class Group updated successfully.');
+            $this->dispatch('swal:success', message: 'อัปเดตข้อมูลกลุ่มเรียนเรียบร้อยแล้ว');
         } else {
             $this->classGroupRepository->create($data);
-            $this->dispatch('swal:success', message: 'Class Group created successfully.');
+            $this->dispatch('swal:success', message: 'เพิ่มข้อมูลกลุ่มเรียนเรียบร้อยแล้ว');
         }
 
         $this->closeModal();
         $this->resetInputFields();
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'คุณแน่ใจหรือไม่ว่าต้องการลบกลุ่มชั้นเรียนนี้?');
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'ไม่พบรหัสข้อมูล');
+            return;
+        }
+
+        $classGroup = $this->classGroupRepository->findById($id);
+        
+        if ($classGroup) {
+            $this->dispatch('swal:confirm', 
+                id: $id,
+                message: "คุณแน่ใจหรือไม่ที่จะลบกลุ่มเรียน: {$classGroup->course_group_name} ({$classGroup->course_group_code})?"
+            );
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลกลุ่มเรียน');
+        }
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($id)
+    public function confirmDelete($id = null)
     {
-        $this->classGroupRepository->deleteById($id);
-        $this->dispatch('swal:success', message: 'Class Group deleted successfully.');
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
+        }
+
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'เกิดข้อผิดพลาด: ไม่พบรหัสข้อมูล');
+            return;
+        }
+        
+        try {
+            if ($this->classGroupRepository->deleteById($id)) {
+                $this->dispatch('swal:success', message: 'ลบข้อมูลกลุ่มเรียนเรียบร้อยแล้ว');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่พบข้อมูลกลุ่มเรียนที่ต้องการลบ');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ManageClassGroups: Deletion failed', ['error' => $e->getMessage()]);
+            
+            // Check for integrity constraint violation
+            if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้เนื่องจากมีการใช้งานอยู่ในส่วนอื่น (เช่น มีนักศึกษาในกลุ่มนี้)');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้: ' . $e->getMessage());
+            }
+        }
     }
 
     private function resetInputFields()

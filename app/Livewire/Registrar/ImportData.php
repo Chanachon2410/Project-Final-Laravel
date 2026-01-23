@@ -16,6 +16,11 @@ class ImportData extends Component
 
     public $file;
 
+    public function cancel()
+    {
+        $this->reset('file');
+    }
+
     public function import()
     {
         $this->validate([

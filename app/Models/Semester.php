@@ -16,7 +16,6 @@ class Semester extends Model
         'registration_end_date',
         'late_registration_start_date',
         'late_registration_end_date',
-        'late_fee_rate',
         'is_active',
     ];
 

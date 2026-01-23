@@ -37,6 +37,11 @@ class RegistrationStatus extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     public function viewProof($studentId)
     {
         $this->selectedStudent = Student::with(['registrations' => function($q) {
@@ -80,9 +85,18 @@ class RegistrationStatus extends Component
                 // Check if already exists to prevent duplicates via race condition
                 $registration = Registration::where('student_id', $studentId)->latest()->first();
                 if (!$registration) {
+                    // Find active semester to get semester and year
+                    $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+                    
+                    if (!$activeSemester) {
+                        $this->dispatch('swal:error', message: 'ไม่สามารถดำเนินการได้ เนื่องจากยังไม่ได้ตั้งค่าภาคเรียนปัจจุบัน');
+                        return;
+                    }
+
                     $registration = new Registration();
                     $registration->student_id = $studentId;
-                    // Default fields if needed
+                    $registration->semester = $activeSemester->semester;
+                    $registration->year = $activeSemester->year;
                 }
             }
         }
@@ -105,6 +119,8 @@ class RegistrationStatus extends Component
             if ($this->isShowProofModalOpen && $this->selectedRegistration && $this->selectedRegistration->id == $registration->id) {
                 $this->selectedRegistration = $registration->fresh();
             }
+
+            $this->dispatch('swal:success', message: 'อัปเดตสถานะการลงทะเบียนเรียบร้อยแล้ว');
         }
     }
 

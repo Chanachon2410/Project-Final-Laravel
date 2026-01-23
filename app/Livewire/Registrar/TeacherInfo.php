@@ -41,6 +41,11 @@ class TeacherInfo extends Component
         }
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     public function viewTeacher($id)
     {
         $this->selectedTeacher = Teacher::with([

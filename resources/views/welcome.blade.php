@@ -45,15 +45,6 @@
                             >
                                 Log in
                             </a>
-
-                            @if (Route::has('register'))
-                                <a
-                                    href="{{ route('register') }}"
-                                    class="text-sm font-semibold leading-6 text-gray-900 dark:text-white"
-                                >
-                                    Register <span aria-hidden="true">→</span>
-                                </a>
-                            @endif
                         @endauth
                     </div>
                 @endif

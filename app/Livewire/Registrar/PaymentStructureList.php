@@ -42,6 +42,11 @@ class PaymentStructureList extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     #[Layout('layouts.app')]
     public function render()
     {

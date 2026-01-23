@@ -23,7 +23,6 @@ class SemesterSeeder extends Seeder
                 'registration_end_date' => '2025-05-18',
                 'late_registration_start_date' => '2025-05-19',
                 'late_registration_end_date' => '2025-05-31',
-                'late_fee_rate' => 100.00,
                 'is_active' => true,
             ]
         );

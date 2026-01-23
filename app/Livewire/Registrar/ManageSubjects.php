@@ -43,6 +43,11 @@ class ManageSubjects extends Component
         $this->resetPage();
     }
 
+    public function paginationView()
+    {
+        return 'vendor.pagination.custom-white';
+    }
+
     public function render()
     {
         return view('livewire.registrar.manage-subjects', [
@@ -82,26 +87,64 @@ class ManageSubjects extends Component
 
         if ($this->subjectId) {
             $this->subjectRepository->update($this->subjectId, $data);
-            $this->dispatch('swal:success', message: 'Subject updated successfully.');
+            $this->dispatch('swal:success', message: 'อัปเดตข้อมูลรายวิชาเรียบร้อยแล้ว');
         } else {
             $this->subjectRepository->create($data);
-            $this->dispatch('swal:success', message: 'Subject created successfully.');
+            $this->dispatch('swal:success', message: 'เพิ่มข้อมูลรายวิชาเรียบร้อยแล้ว');
         }
 
         $this->closeModal();
         $this->resetInputFields();
     }
 
-    public function delete($id)
+    public function delete($id = null)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'Are you sure you want to delete this subject?');
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'ไม่พบรหัสข้อมูล');
+            return;
+        }
+
+        $subject = $this->subjectRepository->findById($id);
+        
+        if ($subject) {
+            $this->dispatch('swal:confirm', 
+                id: $id,
+                message: "คุณแน่ใจหรือไม่ที่จะลบรายวิชา: {$subject->subject_name} ({$subject->subject_code})?"
+            );
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลรายวิชา');
+        }
     }
 
     #[On('delete-confirmed')]
-    public function confirmDelete($subjectId)
+    public function confirmDelete($id = null)
     {
-        $this->subjectRepository->deleteById($subjectId);
-        $this->dispatch('swal:success', message: 'Subject deleted successfully.');
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
+        }
+
+        if (!$id) {
+            $this->dispatch('swal:error', message: 'เกิดข้อผิดพลาด: ไม่พบรหัสข้อมูล');
+            return;
+        }
+        
+        try {
+            if ($this->subjectRepository->deleteById($id)) {
+                $this->dispatch('swal:success', message: 'ลบข้อมูลรายวิชาเรียบร้อยแล้ว');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่พบข้อมูลรายวิชาที่ต้องการลบ');
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('ManageSubjects: Deletion failed', ['error' => $e->getMessage()]);
+            
+            // Check for integrity constraint violation
+            if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้เนื่องจากมีการใช้งานอยู่ในส่วนอื่น (เช่น แผนการเรียน หรือการลงทะเบียน)');
+            } else {
+                $this->dispatch('swal:error', message: 'ไม่สามารถลบข้อมูลได้: ' . $e->getMessage());
+            }
+        }
     }
 
     private function resetInputFields()

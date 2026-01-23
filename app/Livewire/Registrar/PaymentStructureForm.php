@@ -16,6 +16,7 @@ class PaymentStructureForm extends Component
     public $currentStep = 1;
 
     // Step 1: Basic Info
+    public $semester_id; // Added to link with semesters table
     public $semester = 1;
     public $year;
     public $major_id;
@@ -49,7 +50,36 @@ class PaymentStructureForm extends Component
 
     public function mount()
     {
-        $this->year = date('Y') + 543;
+        // Try to find currently active semester
+        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+        if ($activeSemester) {
+            $this->semester_id = $activeSemester->id;
+            $this->populateFromSemester($activeSemester);
+        } else {
+            $this->year = date('Y') + 543;
+        }
+    }
+
+    public function updatedSemesterId($value)
+    {
+        if ($value) {
+            $semester = \App\Models\Semester::find($value);
+            if ($semester) {
+                $this->populateFromSemester($semester);
+            }
+        }
+    }
+
+    private function populateFromSemester($semester)
+    {
+        $this->semester = $semester->semester;
+        $this->year = $semester->year;
+        $this->payment_start_date = $semester->registration_start_date->format('Y-m-d');
+        $this->payment_end_date = $semester->registration_end_date->format('Y-m-d');
+        
+        // Use the late registration dates defined in the semester
+        $this->late_payment_start_date = $semester->late_registration_start_date ? $semester->late_registration_start_date->format('Y-m-d') : '';
+        $this->late_payment_end_date = $semester->late_registration_end_date ? $semester->late_registration_end_date->format('Y-m-d') : '';
     }
     
     public function updatedCalculateDays($value)
@@ -122,6 +152,7 @@ class PaymentStructureForm extends Component
     public function render()
     {
         $levels = Level::all();
+        $semesters = \App\Models\Semester::orderBy('year', 'desc')->orderBy('semester', 'desc')->get();
         $majors = collect(); // FIX: Initialize variable
 
         if ($this->level_id) {
@@ -163,6 +194,7 @@ class PaymentStructureForm extends Component
         return view('livewire.registrar.payment-structure-form', [
             'majors' => $majors,
             'levels' => $levels,
+            'semesters' => $semesters, // Passed semesters to view
             'subjects' => $subjects,
             'availableFees' => $availableFees,
         ]);
@@ -371,6 +403,6 @@ class PaymentStructureForm extends Component
         }
 
         session()->flash('message', 'สร้างใบแจ้งหนี้สำเร็จ!');
-        return redirect()->to('/registrar/dashboard');
+        return redirect()->route('registrar.payment-structures.index');
     }
 }

@@ -17,7 +17,6 @@ return new class extends Migration
             $table->integer('year');
             $table->dateTime('registration_start_date');
             $table->dateTime('registration_end_date');
-            $table->decimal('late_fee_rate', 10, 2);
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
