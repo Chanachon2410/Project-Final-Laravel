@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('lastname', 100);
             $table->foreignId('level_id')->constrained('levels')->onDelete('cascade');
             $table->string('citizen_id', 13);
-            $table->foreignId('class_group_id')->constrained('class_groups')->onDelete('cascade');
+            $table->foreignId('class_group_id')->nullable()->constrained('class_groups')->onDelete('cascade');
             $table->timestamps();
         });
     }

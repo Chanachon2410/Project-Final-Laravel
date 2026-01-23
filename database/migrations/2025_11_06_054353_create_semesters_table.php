@@ -17,6 +17,8 @@ return new class extends Migration
             $table->integer('year');
             $table->dateTime('registration_start_date');
             $table->dateTime('registration_end_date');
+            $table->dateTime('late_registration_start_date')->nullable();
+            $table->dateTime('late_registration_end_date')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
