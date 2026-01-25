@@ -337,9 +337,9 @@
 
     {{-- Include the three separate page templates --}}
     {{-- All variables are passed automatically --}}
-    @include('livewire.pdf.pages.page1')
-    @include('livewire.pdf.pages.page2')
-    @include('livewire.pdf.pages.page3')
+    @include('livewire.pdf.registration-document.pages.page1')
+    @include('livewire.pdf.registration-document.pages.page2')
+    @include('livewire.pdf.registration-document.pages.page3')
 
     @if (!$isPdf)
         </div>

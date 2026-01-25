@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PaymentStructureItem extends Model
+class RegistrationDocumentItem extends Model
 {
     protected $fillable = [
-        'payment_structure_id',
+        'registration_document_id',
         'name',
         'amount',
         'is_subject',
@@ -25,9 +25,9 @@ class PaymentStructureItem extends Model
         'credit' => 'decimal:1',
     ];
 
-    public function paymentStructure(): BelongsTo
+    public function registrationDocument(): BelongsTo
     {
-        return $this->belongsTo(PaymentStructure::class);
+        return $this->belongsTo(RegistrationDocument::class);
     }
 
     public function subject(): BelongsTo

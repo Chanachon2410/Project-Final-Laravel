@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PaymentStructure extends Model
+class RegistrationDocument extends Model
 {
     protected $fillable = [
         'name',
@@ -34,7 +34,7 @@ class PaymentStructure extends Model
 
     public function items(): HasMany
     {
-        return $this->hasMany(PaymentStructureItem::class)->orderBy('sort_order');
+        return $this->hasMany(RegistrationDocumentItem::class)->orderBy('sort_order');
     }
 
     public function major(): BelongsTo

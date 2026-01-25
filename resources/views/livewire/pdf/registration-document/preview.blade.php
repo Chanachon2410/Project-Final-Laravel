@@ -24,4 +24,4 @@
     ];
 @endphp
 
-@include('livewire.pdf.invoice-layout', $layoutData)
+@include('livewire.pdf.registration-document.layout', $layoutData)

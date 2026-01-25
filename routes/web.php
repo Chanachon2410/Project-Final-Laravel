@@ -9,8 +9,8 @@ use App\Livewire\Registrar\ManageMajors;
 use App\Livewire\Registrar\ManageSemesters;
 use App\Livewire\Registrar\ManageSubjects;
 use App\Livewire\Registrar\ManageTuitionFees;
-use App\Livewire\Registrar\PaymentStructureForm;
-use App\Livewire\Registrar\PaymentStructureList;
+use App\Livewire\Registrar\RegistrationDocumentForm;
+use App\Livewire\Registrar\RegistrationDocumentList;
 use App\Livewire\Student\RegistrationUpload;
 use App\Livewire\Student\RegistrationForm;
 use App\Livewire\Teacher\ViewStudents;
@@ -67,8 +67,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/registrars', \App\Livewire\Registrar\ManageRegistrars::class)->name('registrars.index');
         Route::get('/semesters', ManageSemesters::class)->name('semesters.index');
         Route::get('/tuition-fees', ManageTuitionFees::class)->name('tuition-fees.index');
-        Route::get('/payment-structures', PaymentStructureList::class)->name('payment-structures.index');
-        Route::get('/payment-structures/create', PaymentStructureForm::class)->name('payment-structures.create');
+        Route::get('/registration-documents', RegistrationDocumentList::class)->name('registration-documents.index');
+        Route::get('/registration-documents/create', RegistrationDocumentForm::class)->name('registration-documents.create');
         Route::get('/students/{student}', \App\Livewire\Registrar\ViewStudent::class)->name('students.view');
         Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
         Route::get('/registration-status', \App\Livewire\Registrar\RegistrationStatus::class)->name('registration-status.index');
@@ -76,14 +76,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Student Routes
     Route::middleware(['role:Student'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/registration/form', RegistrationForm::class)->name('registration.form'); // หน้าเลือกใบแจ้งหนี้/Preview
+        Route::get('/registration/form', RegistrationForm::class)->name('registration.form'); // หน้าเลือกเอกสารลงทะเบียน/Preview
         Route::get('/registration/upload', RegistrationUpload::class)->name('registration.upload');
     });
 });
 
 // Handle 403 Forbidden
-Route::fallback(function () {
-    abort(403);
-});
+// Route::fallback(function () {
+//     abort(403);
+// });
 
 require __DIR__.'/auth.php';

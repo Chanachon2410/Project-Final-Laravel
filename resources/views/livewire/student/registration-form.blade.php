@@ -13,7 +13,7 @@
                             </path>
                         </svg>
                     </span>
-                    รายการที่ต้องชำระ (ใบแจ้งหนี้)
+                    รายการที่ต้องชำระ (เอกสารลงทะเบียน)
                 </h2>
                 <span
                     class="text-xs font-medium text-gray-500 bg-white border px-2 py-1 rounded">ปีการศึกษาปัจจุบัน</span>
@@ -44,7 +44,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
-                            @forelse($structures as $struct)
+                            @forelse($documents as $doc)
                                 <tr class="hover:bg-blue-50/50 transition duration-150 group">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
@@ -57,35 +57,35 @@
                                                 </svg>
                                             </div>
                                             <div class="ml-4">
-                                                <div class="text-sm font-bold text-gray-900">{{ $struct->name }}</div>
+                                                <div class="text-sm font-bold text-gray-900">{{ $doc->name }}</div>
                                                 <div class="text-xs text-gray-500">ประเภท: ค่าเทอมปกติ</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 py-1 text-xs font-bold rounded-md bg-gray-100 text-gray-600">
-                                            {{ $struct->semester }}/{{ $struct->year }}
+                                            {{ $doc->semester }}/{{ $doc->year }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
                                         <div class="text-sm font-bold text-gray-900">
-                                            {{ number_format($struct->total_amount, 2) }}</div>
+                                            {{ number_format($doc->total_amount, 2) }}</div>
                                         <div class="text-xs text-gray-500">บาท</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        @if ($struct->payment_end_date)
+                                        @if ($doc->payment_end_date)
                                             <div
                                                 class="text-xs font-medium text-orange-600 bg-orange-50 px-2 py-1 rounded-lg inline-block border border-orange-100">
                                                 <span
                                                     class="block text-[10px] text-orange-400 uppercase">ครบกำหนด</span>
-                                                {{ \Carbon\Carbon::parse($struct->payment_end_date)->addYears(543)->format('d/m/Y') }}
+                                                {{ \Carbon\Carbon::parse($doc->payment_end_date)->addYears(543)->format('d/m/Y') }}
                                             </div>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
-                                        <button wire:click="selectStructure({{ $struct->id }})"
+                                        <button wire:click="selectDocument({{ $doc->id }})"
                                             class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all hover:shadow-md hover:text-indigo-600 group-hover:border-indigo-200">
                                             <svg class="w-4 h-4 mr-2 text-gray-400 group-hover:text-indigo-500"
                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +93,7 @@
                                                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                                                 </path>
                                             </svg>
-                                            พิมพ์ใบแจ้งหนี้
+                                            พิมพ์เอกสาร
                                         </button>
                                     </td>
                                 </tr>
@@ -111,7 +111,7 @@
                                                     </path>
                                                 </svg>
                                             </div>
-                                            <p class="text-base font-medium text-gray-600">ไม่พบรายการใบแจ้งหนี้</p>
+                                            <p class="text-base font-medium text-gray-600">ไม่พบรายการเอกสารลงทะเบียน</p>
                                             <p class="text-sm text-gray-400">สำหรับสาขา/ชั้นปีของคุณในขณะนี้</p>
                                         </div>
                                     </td>
@@ -123,17 +123,17 @@
 
                 <!-- Mobile View (Cards) -->
                 <div class="md:hidden space-y-4 p-4 bg-gray-50">
-                    @forelse($structures as $struct)
+                    @forelse($documents as $doc)
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                             <div class="flex justify-between items-start mb-3">
                                 <div>
-                                    <h3 class="font-bold text-gray-800">{{ $struct->name }}</h3>
+                                    <h3 class="font-bold text-gray-800">{{ $doc->name }}</h3>
                                     <span
-                                        class="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ $struct->semester }}/{{ $struct->year }}</span>
+                                        class="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ $doc->semester }}/{{ $doc->year }}</span>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-lg font-bold text-gray-900">
-                                        {{ number_format($struct->total_amount, 2) }}</p>
+                                        {{ number_format($doc->total_amount, 2) }}</p>
                                     <p class="text-xs text-gray-500">บาท</p>
                                 </div>
                             </div>
@@ -141,12 +141,12 @@
                                 <div class="text-xs text-gray-500">
                                     กำหนดชำระ: <br>
                                     <span class="font-medium text-gray-700">
-                                        {{ $struct->payment_end_date ? \Carbon\Carbon::parse($struct->payment_end_date)->addYears(543)->format('d/m/Y') : '-' }}
+                                        {{ $doc->payment_end_date ? \Carbon\Carbon::parse($doc->payment_end_date)->addYears(543)->format('d/m/Y') : '-' }}
                                     </span>
                                 </div>
-                                <button wire:click="selectStructure({{ $struct->id }})"
+                                <button wire:click="selectDocument({{ $doc->id }})"
                                     class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg shadow hover:bg-indigo-700">
-                                    พิมพ์ใบแจ้งหนี้
+                                    พิมพ์เอกสาร
                                 </button>
                             </div>
                         </div>
@@ -159,12 +159,12 @@
     </div>
 
     <!-- Hidden Print Area (Keep Logic Same as Original) -->
-    @if ($paymentStructure)
+    @if ($registrationDocument)
         <div id="invoice-print-area" class="hidden">
             @php
                 // Reuse logic similar to Controller to prepare data for Preview
                 // 1. Fees
-                $mappedFees = $paymentStructure->items
+                $mappedFees = $registrationDocument->items
                     ->where('is_subject', false)
                     ->map(function ($item) {
                         return ['name' => $item->name, 'amount' => $item->amount];
@@ -172,14 +172,8 @@
                     ->values()
                     ->toArray();
 
-                // ... (Logic code truncated for brevity, assume same as original file) ...
-
-                // Copy ALL PHP Logic from original file here for Printing functionality
-                // For brevity in this snippet, I am focusing on the UI parts.
-                // Ensure to paste the original PHP logic block here when using in production.
-
                 $mappedSubjects = [];
-                foreach ($paymentStructure->items as $item) {
+                foreach ($registrationDocument->items as $item) {
                     if ($item->is_subject && $item->subject) {
                         $mappedSubjects[] = [
                             'code' => $item->subject->subject_code ?? '-',
@@ -220,7 +214,7 @@
                         return $bahtText . 'บาทถ้วน';
                     }
                 }
-                $bahtText = convertBahtToThai($paymentStructure->total_amount);
+                $bahtText = convertBahtToThai($registrationDocument->total_amount);
 
                 // Calculate Tuition total for Page 2 "Others" field
                 $totalTuitionAmount = 0;
@@ -233,15 +227,15 @@
                 }
 
                 // 4. Late Fee Logic (Mirrored from Controller)
-                $levelName = $paymentStructure->level->name ?? ''; // Use relation directly
+                $levelName = $registrationDocument->level->name ?? ''; // Use relation directly
                 $isBachelor = str_contains($levelName, 'ตรี') || str_contains($levelName, 'Bachelor');
 
-                $lateFeeType = $isBachelor ? 'daily' : $paymentStructure->late_fee_type ?? 'flat';
-                $lateFeeAmount = (float) ($paymentStructure->late_fee_amount ?? 0);
-                $startDate = $paymentStructure->late_payment_start_date; // Carbon object
+                $lateFeeType = $isBachelor ? 'daily' : $registrationDocument->late_fee_type ?? 'flat';
+                $lateFeeAmount = (float) ($registrationDocument->late_fee_amount ?? 0);
+                $startDate = $registrationDocument->late_payment_start_date; // Carbon object
                 $maxDays =
-                    $paymentStructure->late_fee_max_days && $paymentStructure->late_fee_max_days > 0
-                        ? $paymentStructure->late_fee_max_days
+                    $registrationDocument->late_fee_max_days && $registrationDocument->late_fee_max_days > 0
+                        ? $registrationDocument->late_fee_max_days
                         : 15;
 
                 $thaiMonths = [
@@ -294,7 +288,7 @@
                     }
                 }
 
-                $grandTotal = $paymentStructure->total_amount;
+                $grandTotal = $registrationDocument->total_amount;
                 if ($lateFeeProps['show'] && $lateFeeType !== 'daily') {
                     $grandTotal += $lateFeeAmount;
                 }
@@ -302,8 +296,8 @@
 
                 if ($startDate) {
                     $s = \Carbon\Carbon::parse($startDate);
-                    $e = $paymentStructure->late_payment_end_date
-                        ? \Carbon\Carbon::parse($paymentStructure->late_payment_end_date)
+                    $e = $registrationDocument->late_payment_end_date
+                        ? \Carbon\Carbon::parse($registrationDocument->late_payment_end_date)
                         : null;
 
                     if ($e) {
@@ -328,9 +322,9 @@
                 }
 
                 $payNormalRange = '-';
-                if ($paymentStructure->payment_start_date && $paymentStructure->payment_end_date) {
-                    $ps = \Carbon\Carbon::parse($paymentStructure->payment_start_date);
-                    $pe = \Carbon\Carbon::parse($paymentStructure->payment_end_date);
+                if ($registrationDocument->payment_start_date && $registrationDocument->payment_end_date) {
+                    $ps = \Carbon\Carbon::parse($registrationDocument->payment_start_date);
+                    $pe = \Carbon\Carbon::parse($registrationDocument->payment_end_date);
                     if ($ps->month == $pe->month) {
                         $payNormalNormalText =
                             $ps->day . ' - ' . $pe->day . ' ' . $thaiMonths[$ps->month] . ' ' . ($ps->year + 543);
@@ -352,20 +346,20 @@
                 $layoutData = [
                     'isPdf' => false,
                     'title' => $student->title,
-                    'level_name' => $paymentStructure->level->name ?? '-',
-                    'major_name' => $paymentStructure->major->major_name ?? '-',
-                    'semester' => $paymentStructure->semester,
-                    'year' => $paymentStructure->year,
+                    'level_name' => $registrationDocument->level->name ?? '-',
+                    'major_name' => $registrationDocument->major->major_name ?? '-',
+                    'semester' => $registrationDocument->semester,
+                    'year' => $registrationDocument->year,
                     'fees' => $mappedFees,
                     'subjects' => $mappedSubjects,
-                    'total_amount' => $paymentStructure->total_amount,
+                    'total_amount' => $registrationDocument->total_amount,
                     'baht_text' => $bahtText,
                     'payment_normal_range' => $payNormalRange,
                     'student_name' => $student->firstname . ' ' . $student->lastname,
                     'student_code' => $student->student_code,
                     'group_code' =>
-                        $paymentStructure->custom_ref2 ??
-                        ($paymentStructure->level->name ?? '') . ' ' . ($paymentStructure->major->major_code ?? ''),
+                        $registrationDocument->custom_ref2 ??
+                        ($registrationDocument->level->name ?? '') . ' ' . ($registrationDocument->major->major_code ?? ''),
 
                     'late_fee_props' => $lateFeeProps,
                     'grand_total' => $grandTotal,
@@ -375,7 +369,7 @@
                     'total_tuition_amount' => $totalTuitionAmount,
                 ];
             @endphp
-            @include('livewire.pdf.invoice-main', $layoutData)
+            @include('livewire.pdf.registration-document.main', $layoutData)
         </div>
     @endif
 

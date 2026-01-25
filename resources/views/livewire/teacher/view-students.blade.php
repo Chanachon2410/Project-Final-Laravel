@@ -33,28 +33,17 @@
                             </select>
                         </div>
 
-                        <!-- Class Group Filter -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-gray-600 whitespace-nowrap">กลุ่มเรียน:</span>
-                            <select wire:model.live="selectedGroupId" id="selectedGroupId" class="bg-white border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block py-2 cursor-pointer shadow-sm transition-all min-w-[150px]">
-                                <option value="">ทั้งหมดที่ปรึกษา</option>
-                                @foreach($advisedGroups as $group)
-                                    <option value="{{ $group->id }}">{{ $group->course_group_name }} ({{ $group->level->name }} ปี {{ $group->level_year }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <!-- Status Filter -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-gray-600 whitespace-nowrap">สถานะ:</span>
-                            <select wire:model.live="statusFilter" id="statusFilter" class="bg-white border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block py-2 cursor-pointer shadow-sm transition-all min-w-[140px]">
-                                <option value="">ทั้งหมด</option>
-                                <option value="pending">รอตรวจสอบ</option>
-                                <option value="approved">อนุมัติแล้ว</option>
-                                <option value="rejected">ถูกปฏิเสธ</option>
-                                <option value="unregistered">ยังไม่ลงทะเบียน</option>
-                            </select>
-                        </div>
+                        <!-- Filter Button -->
+                        <button wire:click="$set('isShowFilterModalOpen', true)" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            ตัวกรอง
+                            @if($statusFilter || ($selectedGroupId && !$selectedGroupId)) 
+                                <span class="ml-2 flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                </span>
+                            @endif
+                        </button>
                     </div>
                     
                     <!-- Search Box -->
@@ -78,7 +67,9 @@
                             <tr class="bg-gray-50/50">
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">รหัสนักศึกษา</th>
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อ-นามสกุล</th>
-                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">กลุ่มเรียน</th>
+                                @if(!$selectedGroupId)
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">กลุ่มเรียน</th>
+                                @endif
                                 <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ชั้นปี</th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">สถานะ</th>
                                 <th class="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">จัดการ</th>
@@ -100,9 +91,11 @@
                                             {{ $student->title }}{{ $student->firstname }} {{ $student->lastname }}
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ $student->classGroup->course_group_name ?? '-' }}
-                                    </td>
+                                    @if(!$selectedGroupId)
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                            {{ $student->classGroup->course_group_name ?? '-' }}
+                                        </td>
+                                    @endif
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                         {{ $student->level->name ?? '-' }} <span class="text-xs text-gray-400">ปีที่ {{ $student->classGroup->level_year ?? '-' }}</span>
                                     </td>
@@ -326,6 +319,99 @@
 
                         <button type="button" wire:click="closeProofModal" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
                             ปิดหน้าต่าง
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Filter Modal -->
+    @if ($isShowFilterModalOpen)
+        <div class="fixed z-[99] inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" wire:click="$set('isShowFilterModalOpen', false)" aria-hidden="true"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-6 py-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                ตัวกรองข้อมูล
+                            </h3>
+                            <button wire:click="$set('isShowFilterModalOpen', false)" class="text-gray-400 hover:text-gray-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-3">สถานะการลงทะเบียน</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="statusFilter" value="" class="peer sr-only">
+                                        <div class="px-4 py-2 rounded-xl border border-gray-200 text-center text-sm font-medium peer-checked:bg-indigo-50 peer-checked:text-indigo-700 peer-checked:border-indigo-200 transition-all hover:bg-gray-50">
+                                            ทั้งหมด
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="statusFilter" value="pending" class="peer sr-only">
+                                        <div class="px-4 py-2 rounded-xl border border-gray-200 text-center text-sm font-medium peer-checked:bg-yellow-50 peer-checked:text-yellow-700 peer-checked:border-yellow-200 transition-all hover:bg-gray-50">
+                                            รอตรวจสอบ
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="statusFilter" value="approved" class="peer sr-only">
+                                        <div class="px-4 py-2 rounded-xl border border-gray-200 text-center text-sm font-medium peer-checked:bg-green-50 peer-checked:text-green-700 peer-checked:border-green-200 transition-all hover:bg-gray-50">
+                                            อนุมัติแล้ว
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="statusFilter" value="rejected" class="peer sr-only">
+                                        <div class="px-4 py-2 rounded-xl border border-gray-200 text-center text-sm font-medium peer-checked:bg-red-50 peer-checked:text-red-700 peer-checked:border-red-200 transition-all hover:bg-gray-50">
+                                            ถูกปฏิเสธ
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" wire:model.live="statusFilter" value="unregistered" class="peer sr-only">
+                                        <div class="px-4 py-2 rounded-xl border border-gray-200 text-center text-sm font-medium peer-checked:bg-gray-100 peer-checked:text-gray-800 peer-checked:border-gray-300 transition-all hover:bg-gray-50">
+                                            ยังไม่ลงทะเบียน
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <hr class="border-gray-100">
+
+                            <!-- Class Group Filter (Only show if not pre-selected via prop/route) -->
+                            <!-- Note: We use check for $selectedGroupId from component property context, but here inside blade we can't easily distinguish route param vs filter. 
+                                 However, the requirement was "if we enter a specific room page, hide filters". 
+                                 Since this is a modal now, we can show it, but maybe disable it or just show it if user wants to switch context?
+                                 Let's follow the previous logic: if we are in specific room mode (passed from route), maybe we don't show this part? 
+                                 But wait, the user asked to remove the "old filter", implying this modal replaces it. 
+                                 Let's keep it consistent: If user is on "View All", they can pick group. If on "Specific Group", maybe lock it or hide it.
+                                 Let's assume for now if $selectedGroupId is set initially it might be locked, but wire:model.live makes it changeable.
+                                 If the intention of "Specific Page" is strict, we might hide it. Let's show it for now as a "Filter".
+                            -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-3">กลุ่มเรียน</label>
+                                <select wire:model.live="selectedGroupId" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-sm">
+                                    <option value="">ทั้งหมดที่ปรึกษา</option>
+                                    @foreach($advisedGroups as $group)
+                                        <option value="{{ $group->id }}">{{ $group->course_group_name }} ({{ $group->level->name }} ปี {{ $group->level_year }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse rounded-b-2xl">
+                        <button type="button" wire:click="$set('isShowFilterModalOpen', false)" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            ตกลง
+                        </button>
+                        <button type="button" wire:click="$set('statusFilter', ''); $set('selectedGroupId', '');" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            ล้างค่า
                         </button>
                     </div>
                 </div>

@@ -11,18 +11,28 @@
                     class="absolute bottom-0 left-0 -ml-10 -mb-10 w-32 h-32 rounded-full bg-pink-500 opacity-20 blur-xl">
                 </div>
 
-                <div class="relative z-10">
-                    <h2 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
-                        <span class="bg-white/20 p-2 rounded-xl">
-                            <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </span>
-                        สร้างใบแจ้งหนี้ใหม่
-                    </h2>
-                    <p class="text-indigo-100 text-sm mt-2 pl-14 opacity-80">กำหนดโครงสร้างค่าเทอม รายวิชา
-                        และค่าใช้จ่ายต่างๆ ตามขั้นตอน</p>
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                            <span class="bg-white/20 p-2 rounded-xl">
+                                <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </span>
+                            สร้างเอกสารลงทะเบียนใหม่
+                        </h2>
+                        <p class="text-indigo-100 text-sm mt-2 pl-14 opacity-80">กำหนดโครงสร้างค่าเทอม รายวิชา
+                            และค่าใช้จ่ายต่างๆ ตามขั้นตอน</p>
+                    </div>
+
+                    <a href="{{ route('registrar.registration-documents.index') }}" 
+                        class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold py-2.5 px-5 rounded-xl border border-white/20 shadow-sm transition-all duration-200 flex items-center gap-2 transform hover:-translate-y-0.5">
+                        <svg class="w-4 h-4 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        <span>ย้อนกลับ</span>
+                    </a>
                 </div>
             </div>
 
@@ -130,7 +140,7 @@
                                         <label class="block text-sm font-bold text-gray-700 mb-1">รหัสกลุ่มเรียน (Ref.2)
                                             <span
                                                 class="text-gray-400 font-normal text-xs">*เว้นว่างเพื่อใช้ค่าเริ่มต้น</span></label>
-                                        <input type="text" wire:model="custom_ref2"
+                                        <input type="text" wire:model.live="custom_ref2"
                                             class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5"
                                             placeholder="เช่น 682020101">
                                     </div>
@@ -518,7 +528,7 @@
                                 </div>
                             </div>
                             <h3 class="text-2xl font-bold text-gray-900 mb-2">ข้อมูลครบถ้วน พร้อมบันทึก</h3>
-                            <p class="text-gray-500 mb-8 max-w-md mx-auto">ระบบได้เตรียมข้อมูลใบแจ้งหนี้เรียบร้อยแล้ว
+                            <p class="text-gray-500 mb-8 max-w-md mx-auto">ระบบได้เตรียมข้อมูลเอกสารลงทะเบียนเรียบร้อยแล้ว
                                 กรุณาตรวจสอบตัวอย่างก่อนกดยืนยันการสร้าง</p>
 
                             <button type="button"
@@ -531,7 +541,7 @@
                                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
                                     </path>
                                 </svg>
-                                ดูตัวอย่างใบแจ้งหนี้ (Preview)
+                                ดูตัวอย่างเอกสารลงทะเบียน (Preview)
                             </button>
                         </div>
 
@@ -548,7 +558,7 @@
                                     class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full">
                                     <div
                                         class="bg-gray-50 px-6 py-4 flex justify-between items-center border-b border-gray-100">
-                                        <h3 class="text-lg font-bold text-gray-900">ตัวอย่างใบแจ้งหนี้</h3>
+                                        <h3 class="text-lg font-bold text-gray-900">ตัวอย่างเอกสารลงทะเบียน</h3>
                                         <button type="button"
                                             onclick="document.getElementById('previewModal').classList.add('hidden')"
                                             class="text-gray-400 hover:text-gray-600 transition-colors">
@@ -562,7 +572,7 @@
                                     <div
                                         class="bg-white p-6 max-h-[70vh] overflow-auto bg-gray-100/50 flex justify-center">
                                         <div class="shadow-lg">
-                                            @include('livewire.pdf.invoice-preview')
+                                            @include('livewire.pdf.registration-document.preview')
                                         </div>
                                     </div>
                                     <div class="bg-gray-50 px-6 py-4 sm:flex sm:flex-row-reverse">
@@ -610,7 +620,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                ยืนยันและสร้างใบแจ้งหนี้
+                                ยืนยันและสร้างเอกสารลงทะเบียน
                             </button>
                         @endif
                     </div>

@@ -26,6 +26,7 @@ class ViewStudents extends Component
     
     // Modal state
     public $isShowProofModalOpen = false;
+    public $isShowFilterModalOpen = false; // Filter modal state
     public $selectedRegistration = null;
     public $selectedStudent = null;
 

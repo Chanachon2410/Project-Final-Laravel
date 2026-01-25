@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_structure_items', function (Blueprint $table) {
+        Schema::create('registration_document_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payment_structure_id')->constrained('payment_structures')->onDelete('cascade');
+            $table->foreignId('registration_document_id')->constrained('registration_documents')->onDelete('cascade');
             
             $table->string('name'); // ชื่อรายการ หรือ ชื่อวิชา
             $table->decimal('amount', 10, 2)->default(0); // จำนวนเงิน
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payment_structure_items');
+        Schema::dropIfExists('registration_document_items');
     }
 };

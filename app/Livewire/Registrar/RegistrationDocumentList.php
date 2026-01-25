@@ -2,12 +2,12 @@
 
 namespace App\Livewire\Registrar;
 
-use App\Models\PaymentStructure;
+use App\Models\RegistrationDocument;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class PaymentStructureList extends Component
+class RegistrationDocumentList extends Component
 {
     use WithPagination;
 
@@ -16,19 +16,19 @@ class PaymentStructureList extends Component
 
     public function delete($id)
     {
-        $structure = PaymentStructure::find($id);
-        if ($structure) {
-            $structure->delete();
-            session()->flash('message', 'ลบใบแจ้งหนี้เรียบร้อยแล้ว');
+        $document = RegistrationDocument::find($id);
+        if ($document) {
+            $document->delete();
+            session()->flash('message', 'ลบเอกสารลงทะเบียนเรียบร้อยแล้ว');
         }
     }
 
     public function toggleStatus($id)
     {
-        $structure = PaymentStructure::find($id);
-        if ($structure) {
-            $structure->is_active = !$structure->is_active;
-            $structure->save();
+        $document = RegistrationDocument::find($id);
+        if ($document) {
+            $document->is_active = !$document->is_active;
+            $document->save();
         }
     }
 
@@ -50,7 +50,7 @@ class PaymentStructureList extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $structures = PaymentStructure::with(['major', 'level'])
+        $documents = RegistrationDocument::with(['major', 'level'])
             ->where(function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%')
                       ->orWhereHas('major', function ($q) {
@@ -63,8 +63,8 @@ class PaymentStructureList extends Component
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);
 
-        return view('livewire.registrar.payment-structure-list', [
-            'structures' => $structures
+        return view('livewire.registrar.registration-document-list', [
+            'documents' => $documents
         ]);
     }
 }

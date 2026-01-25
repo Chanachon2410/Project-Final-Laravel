@@ -48,7 +48,7 @@
                         <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('student.registration.form') ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">ลงทะเบียน & ใบแจ้งหนี้</span>
+                        <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">ลงทะเบียน & เอกสาร</span>
                     </a>
                     <a href="{{ route('student.registration.upload') }}" 
                        class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('student.registration.upload') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"
@@ -167,13 +167,13 @@
 
                 <!-- Actions -->
                 <li class="w-full flex flex-col items-center gap-2">
-                    <a href="{{ route('registrar.payment-structures.index') }}" 
-                       class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('registrar.payment-structures.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"
+                    <a href="{{ route('registrar.registration-documents.index') }}"
+                       class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('registrar.registration-documents.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"
                        :class="sidebarCollapsed ? 'w-12 h-12 justify-center px-0' : 'w-full justify-start px-4 gap-3'">
-                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('registrar.payment-structures.*') ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('registrar.registration-documents.*') ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">จัดการใบแจ้งหนี้</span>
+                        <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">จัดการเอกสารลงทะเบียน</span>
                     </a>
                     <a href="{{ route('registrar.registration-status.index') }}" 
                        class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('registrar.registration-status.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"

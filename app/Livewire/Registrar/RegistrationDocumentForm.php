@@ -4,14 +4,14 @@ namespace App\Livewire\Registrar;
 
 use App\Models\Level;
 use App\Models\Major;
-use App\Models\PaymentStructure;
-use App\Models\PaymentStructureItem;
+use App\Models\RegistrationDocument;
+use App\Models\RegistrationDocumentItem;
 use App\Models\Subject;
 use App\Models\TuitionFee;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-class PaymentStructureForm extends Component
+class RegistrationDocumentForm extends Component
 {
     public $currentStep = 1;
 
@@ -112,27 +112,12 @@ class PaymentStructureForm extends Component
 
     public function updatedLevelId($value)
     {
-        if (!$value) return;
-        $level = Level::find($value);
-        if ($level) {
-            if (str_contains($level->name, 'ปวช')) {
-                $this->late_fee_type = 'flat';
-                $this->late_fee_max_days = null;
-                // ปวช. เรียนฟรี (ปกติไม่คิดค่าหน่วยกิต)
-                $this->theoryRate = 0;
-                $this->practicalRate = 0;
-            } elseif (str_contains($level->name, 'ปวส') || str_contains($level->name, 'ชั้นสูง')) {
-                $this->late_fee_type = 'flat';
-                $this->late_fee_max_days = null;
-                // ปวส.
-                $this->theoryRate = 100;
-                $this->practicalRate = 100;
-            } elseif (str_contains($level->name, 'ตรี') || str_contains($level->name, 'Bachelor')) {
-                $this->late_fee_type = 'daily';
-                // ป.ตรี
-                $this->theoryRate = 150;
-                $this->practicalRate = 200;
-            }
+        // We only keep it for triggering re-render of majors list, 
+        // removing the automatic resetting of fee types and rates 
+        // so the user's manual input or previous values aren't lost.
+        if (!$value) {
+            $this->major_id = null;
+            $this->custom_ref2 = '';
         }
     }
 
@@ -141,6 +126,7 @@ class PaymentStructureForm extends Component
         if ($value) {
             $major = Major::find($value);
             if ($major) {
+                // Ensure custom_ref2 is updated with major_code immediately
                 $this->custom_ref2 = $major->major_code;
             }
         } else {
@@ -191,7 +177,7 @@ class PaymentStructureForm extends Component
                                    ->get();
         }
 
-        return view('livewire.registrar.payment-structure-form', [
+        return view('livewire.registrar.registration-document-form', [
             'majors' => $majors,
             'levels' => $levels,
             'semesters' => $semesters, // Passed semesters to view
@@ -357,10 +343,10 @@ class PaymentStructureForm extends Component
     {
         $major = Major::find($this->major_id);
         $level = Level::find($this->level_id);
-        $structureName = "ใบแจ้งหนี้ {$major->major_name} {$level->name} {$this->semester}/{$this->year}";
+        $documentName = "เอกสารลงทะเบียน {$major->major_name} {$level->name} {$this->semester}/{$this->year}";
 
-        $structure = PaymentStructure::create([
-            'name' => $structureName,
+        $document = RegistrationDocument::create([
+            'name' => $documentName,
             'semester' => $this->semester,
             'year' => $this->year,
             'major_id' => $this->major_id,
@@ -377,8 +363,8 @@ class PaymentStructureForm extends Component
 
         $sortOrder = 1;
         foreach ($this->selectedSubjects as $subj) {
-            PaymentStructureItem::create([
-                'payment_structure_id' => $structure->id,
+            RegistrationDocumentItem::create([
+                'registration_document_id' => $document->id,
                 'name' => $subj['name'],
                 'amount' => 0, 
                 'is_subject' => true,
@@ -392,8 +378,8 @@ class PaymentStructureForm extends Component
 
         foreach ($this->fees as $fee) {
             if (!empty($fee['name'])) {
-                PaymentStructureItem::create([
-                    'payment_structure_id' => $structure->id,
+                RegistrationDocumentItem::create([
+                    'registration_document_id' => $document->id,
                     'name' => $fee['name'],
                     'amount' => $fee['amount'],
                     'is_subject' => false,
@@ -402,7 +388,7 @@ class PaymentStructureForm extends Component
             }
         }
 
-        session()->flash('message', 'สร้างใบแจ้งหนี้สำเร็จ!');
-        return redirect()->route('registrar.payment-structures.index');
+        session()->flash('message', 'สร้างเอกสารลงทะเบียนสำเร็จ!');
+        return redirect()->route('registrar.registration-documents.index');
     }
 }

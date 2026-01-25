@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Student;
 
-use App\Models\PaymentStructure;
+use App\Models\RegistrationDocument;
 use App\Models\Student;
 use App\Models\Major;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -14,7 +14,7 @@ use Carbon\Carbon;
 class RegistrationForm extends Component
 {
     public $student;
-    public $paymentStructure;
+    public $registrationDocument;
     public $showPreview = false;
 
     public function mount()
@@ -24,13 +24,13 @@ class RegistrationForm extends Component
             ->firstOrFail();
     }
 
-    public function selectStructure($id)
+    public function selectDocument($id)
     {
-        $this->paymentStructure = PaymentStructure::with(['items.subject', 'major', 'level'])
+        $this->registrationDocument = RegistrationDocument::with(['items.subject', 'major', 'level'])
             ->where('is_active', true)
             ->find($id);
 
-        if ($this->paymentStructure) {
+        if ($this->registrationDocument) {
             $this->showPreview = true;
             $this->dispatch('print-requested');
         }
@@ -39,31 +39,31 @@ class RegistrationForm extends Component
     public function closePreview()
     {
         $this->showPreview = false;
-        $this->paymentStructure = null;
+        $this->registrationDocument = null;
     }
 
     public function downloadPdf()
     {
-        if (!$this->paymentStructure) return;
+        if (!$this->registrationDocument) return;
 
         // ดึงข้อมูลล่าสุดจาก DB
-        $structure = PaymentStructure::find($this->paymentStructure->id);
-        if (!$structure) return;
+        $document = RegistrationDocument::find($this->registrationDocument->id);
+        if (!$document) return;
 
-        $data = $this->preparePdfData($structure);
+        $data = $this->preparePdfData($document);
 
         // โหลด View PDF
-        $pdf = Pdf::loadView('livewire.pdf.invoice-main', $data)->setPaper('a4', 'portrait');
+        $pdf = Pdf::loadView('livewire.pdf.registration-document.main', $data)->setPaper('a4', 'portrait');
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'ใบแจ้งชำระเงิน_' . $this->student->student_code . '.pdf');
     }
 
-    private function preparePdfData($structure)
+    private function preparePdfData($document)
     {
         // 1. Fees
-        $fees = $structure->items->where('is_subject', false)->map(function ($item) {
+        $fees = $document->items->where('is_subject', false)->map(function ($item) {
             return [
                 'name' => $item->name,
                 'amount' => $item->amount
@@ -79,11 +79,11 @@ class RegistrationForm extends Component
         }
 
         // 2. Total
-        $totalAmount = $structure->total_amount;
+        $totalAmount = $document->total_amount;
         $bahtText = $this->bahtText($totalAmount);
 
         // 3. Subjects
-        $subjects = $structure->items->whereNotNull('subject_id')->map(function ($item) {
+        $subjects = $document->items->whereNotNull('subject_id')->map(function ($item) {
             $subj = $item->subject;
             return [
                 'code' => $subj->code ?? $subj->subject_code ?? '-',
@@ -98,10 +98,10 @@ class RegistrationForm extends Component
         $levelName = $this->student->level->name ?? '';
         $isBachelor = str_contains($levelName, 'ตรี') || str_contains($levelName, 'Bachelor');
 
-        $lateFeeType = $isBachelor ? 'daily' : ($structure->late_fee_type ?? 'flat');
-        $lateFeeAmount = (float)($structure->late_fee_amount ?? 0);
-        $startDate = $structure->late_payment_start_date; 
-        $maxDays = ($structure->late_fee_max_days && $structure->late_fee_max_days > 0) ? $structure->late_fee_max_days : 15;
+        $lateFeeType = $isBachelor ? 'daily' : ($document->late_fee_type ?? 'flat');
+        $lateFeeAmount = (float)($document->late_fee_amount ?? 0);
+        $startDate = $document->late_payment_start_date; 
+        $maxDays = ($document->late_fee_max_days && $document->late_fee_max_days > 0) ? $document->late_fee_max_days : 15;
 
         // Helper สำหรับแปลงวันที่ไทย
         $thaiMonths = [
@@ -154,7 +154,7 @@ class RegistrationForm extends Component
         $lateFeeRange = '-';
         if ($startDate) {
              $s = Carbon::parse($startDate);
-             $e = $structure->late_payment_end_date ? Carbon::parse($structure->late_payment_end_date) : null;
+             $e = $document->late_payment_end_date ? Carbon::parse($document->late_payment_end_date) : null;
              
              if ($e) {
                  if ($s->month == $e->month) {
@@ -170,9 +170,9 @@ class RegistrationForm extends Component
         // วันที่ชำระปกติ (แบบภาษาไทย)
         $payStartText = '-';
         $payEndText = '-';
-        if ($structure->payment_start_date && $structure->payment_end_date) {
-            $ps = Carbon::parse($structure->payment_start_date);
-            $pe = Carbon::parse($structure->payment_end_date);
+        if ($document->payment_start_date && $document->payment_end_date) {
+            $ps = Carbon::parse($document->payment_start_date);
+            $pe = Carbon::parse($document->payment_end_date);
             if ($ps->month == $pe->month) {
                 $payNormalRange = $ps->day . " - " . $pe->day . " " . $thaiMonths[$ps->month] . " " . ($ps->year + 543);
             } else {
@@ -182,18 +182,24 @@ class RegistrationForm extends Component
             $payNormalRange = '-';
         }
 
+        // Re-fetch all majors (Logic duplicated from render because PDF generation is separate request context sometimes)
+        if (str_contains($levelName, 'ปวส') || str_contains($levelName, 'ชั้นสูง')) $prefix = '3';
+        elseif (str_contains($levelName, 'ตรี') || str_contains($levelName, 'Bachelor')) $prefix = '4';
+        else $prefix = '2';
+        $allMajors = Major::where('major_code', 'like', $prefix . '%')->orderBy('major_code')->get();
+
         return [
             'isPdf' => true,
             'level_name' => $this->student->level->name ?? '-',
-            'semester' => $structure->semester,
-            'year' => $structure->year,
+            'semester' => $document->semester,
+            'year' => $document->year,
             'fees' => $fees,
             'total_amount' => $totalAmount,
             'baht_text' => $bahtText,
             'title' => $this->student->title,
             'student_name' => $this->student->first_name . ' ' . $this->student->last_name,
             'student_code' => $this->student->student_code,
-            'group_code' => $structure->custom_ref2 ?? ($this->student->classGroup->name ?? '-'),
+            'group_code' => $document->custom_ref2 ?? ($this->student->classGroup->name ?? '-'),
             'major_name' => $this->student->classGroup->major->name ?? '-',
             'subjects' => $subjects,
             'payment_normal_range' => $payNormalRange, // ส่งค่าช่วงเวลาปกติแบบภาษาไทย
@@ -202,10 +208,10 @@ class RegistrationForm extends Component
             'grand_baht_text' => $grandBahtText,
             'late_fee_range' => $lateFeeRange,
             'all_majors' => $allMajors,
-            'total_tuition_amount' => $totalTuitionAmount, // เพิ่มค่านี้
+            'total_tuition_amount' => $totalTuitionAmount, 
         ];
     }
-
+    
     private function bahtText($amount)
     {
         if ($amount <= 0) return 'ศูนย์บาทถ้วน';
@@ -245,7 +251,7 @@ class RegistrationForm extends Component
     #[Layout('layouts.app')]
     public function render()
     {
-        $structures = PaymentStructure::where('major_id', $this->student->classGroup->major_id)
+        $documents = RegistrationDocument::where('major_id', $this->student->classGroup->major_id)
             ->where('level_id', $this->student->level_id)
             ->where('is_active', true)
             ->orderBy('id', 'desc')
@@ -259,7 +265,7 @@ class RegistrationForm extends Component
         $allMajors = Major::where('major_code', 'like', $prefix . '%')->orderBy('major_code')->get();
 
         return view('livewire.student.registration-form', [
-            'structures' => $structures,
+            'documents' => $documents,
             'allMajors' => $allMajors
         ]);
     }

@@ -47,6 +47,10 @@ class ManageStudents extends Component
     }
 
     public $isModalOpen = false;
+    public $isShowFilterModalOpen = false; // New filter modal state
+    public $filterLevelId = ''; // Filter by Level
+    public $filterClassGroupId = ''; // Filter by Class Group
+
     public $confirmingDeletion = false;
     public $studentIdToDelete;
 
@@ -64,19 +68,41 @@ class ManageStudents extends Component
 
     public function render()
     {
-        $students = Student::with(['user', 'classGroup', 'level'])
-            ->where(function ($query) {
-                $query->where('firstname', 'like', '%' . $this->search . '%')
-                      ->orWhere('lastname', 'like', '%' . $this->search . '%')
-                      ->orWhere('student_code', 'like', '%' . $this->search . '%');
-            })
-            ->orderBy('created_at', 'desc')
+        $query = Student::with(['user', 'classGroup', 'level']);
+
+        // Search Filter
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('firstname', 'like', '%' . $this->search . '%')
+                  ->orWhere('lastname', 'like', '%' . $this->search . '%')
+                  ->orWhere('student_code', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        // Level Filter
+        if ($this->filterLevelId) {
+            $query->where('level_id', $this->filterLevelId);
+        }
+
+        // Class Group Filter
+        if ($this->filterClassGroupId) {
+            $query->where('class_group_id', $this->filterClassGroupId);
+        }
+
+        $students = $query->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
+
+        // Filter Class Groups based on Selected Level
+        $classGroupsQuery = ClassGroup::query();
+        if ($this->filterLevelId) {
+            $classGroupsQuery->where('level_id', $this->filterLevelId);
+        }
+        $classGroups = $classGroupsQuery->get();
 
         return view('livewire.registrar.manage-students', [
             'students' => $students,
             'levels' => Level::all(),
-            'classGroups' => ClassGroup::all(),
+            'classGroups' => $classGroups,
         ]);
     }
 

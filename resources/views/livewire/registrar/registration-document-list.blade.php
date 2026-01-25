@@ -13,16 +13,16 @@
                             <span class="bg-white/20 p-2 rounded-xl">
                                 <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             </span>
-                            จัดการใบแจ้งหนี้ (Payment Structures)
+                            จัดการเอกสารลงทะเบียน (Registration Documents)
                         </h2>
-                        <p class="text-indigo-100 text-sm mt-1 opacity-80 pl-14">สร้างและจัดการโครงสร้างค่าเทอมสำหรับนักศึกษา</p>
+                        <p class="text-indigo-100 text-sm mt-1 opacity-80 pl-14">สร้างและจัดการเอกสารลงทะเบียนสำหรับนักศึกษา</p>
                     </div>
                     
-                    <a href="{{ route('registrar.payment-structures.create') }}" class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold py-2.5 px-5 rounded-xl border border-white/20 shadow-sm transition-all duration-200 flex items-center gap-2 transform hover:-translate-y-0.5">
+                    <a href="{{ route('registrar.registration-documents.create') }}" class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold py-2.5 px-5 rounded-xl border border-white/20 shadow-sm transition-all duration-200 flex items-center gap-2 transform hover:-translate-y-0.5">
                         <span class="bg-white text-indigo-600 rounded-lg p-1 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                         </span>
-                        <span>สร้างใบแจ้งหนี้ใหม่</span>
+                        <span>สร้างเอกสารลงทะเบียนใหม่</span>
                     </a>
                 </div>
             </div>
@@ -51,7 +51,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
-                            <input type="text" wire:model.live.debounce.300ms="search" placeholder="ค้นหาใบแจ้งหนี้..." class="block w-full pl-10 pr-4 py-2.5 border-gray-300 rounded-xl text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
+                            <input type="text" wire:model.live.debounce.300ms="search" placeholder="ค้นหาเอกสารลงทะเบียน..." class="block w-full pl-10 pr-4 py-2.5 border-gray-300 rounded-xl text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm">
                         </div>
                         <button wire:click="$refresh" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl shadow-md transition-colors flex items-center font-medium">
                             ค้นหา
@@ -83,48 +83,48 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-50">
-                            @forelse ($structures as $structure)
+                            @forelse ($documents as $document)
                                 <tr class="hover:bg-violet-50/30 transition duration-150 group">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">
-                                        {{ $structure->id }}
+                                        {{ $document->id }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-normal break-words max-w-xs">
                                         <div class="flex items-center gap-3">
                                             <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex-shrink-0 flex items-center justify-center font-bold border border-indigo-100">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             </div>
-                                            <span class="text-sm font-bold text-gray-800">{{ $structure->name }}</span>
+                                            <span class="text-sm font-bold text-gray-800">{{ $document->name }}</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2.5 py-1 text-xs font-bold rounded-lg bg-gray-100 text-gray-600 border border-gray-200">
-                                            {{ $structure->semester }}/{{ $structure->year }}
+                                            {{ $document->semester }}/{{ $document->year }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-normal min-w-[150px]">
                                         <div class="flex flex-col gap-1">
                                             <span class="inline-flex w-fit items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
                                                 <span class="w-1 h-1 rounded-full bg-blue-500 mr-1.5"></span>
-                                                {{ $structure->major->major_name ?? 'ทุกสาขา' }}
+                                                {{ $document->major->major_name ?? 'ทุกสาขา' }}
                                             </span>
                                             <span class="inline-flex w-fit items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
                                                 <span class="w-1 h-1 rounded-full bg-purple-500 mr-1.5"></span>
-                                                {{ $structure->level->name ?? 'ทุกระดับชั้น' }}
+                                                {{ $document->level->name ?? 'ทุกระดับชั้น' }}
                                             </span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">
                                         <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" wire:click="toggleStatus({{ $structure->id }})" class="sr-only peer" @if($structure->is_active ?? true) checked @endif>
+                                            <input type="checkbox" wire:click="toggleStatus({{ $document->id }})" class="sr-only peer" @if($document->is_active ?? true) checked @endif>
                                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                                         </label>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                                        <span class="text-sm font-bold text-emerald-600">{{ number_format($structure->total_amount, 2) }}</span>
+                                        <span class="text-sm font-bold text-emerald-600">{{ number_format($document->total_amount, 2) }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                         <div class="flex items-center justify-center space-x-2">
-                                            <button wire:click="delete({{ $structure->id }})" 
+                                            <button wire:click="delete({{ $document->id }})" 
                                                     wire:confirm="คุณแน่ใจหรือไม่ที่จะลบรายการนี้? (ข้อมูลที่ถูกลบจะไม่สามารถกู้คืนได้!)"
                                                     class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors group relative" title="ลบ">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -139,7 +139,7 @@
                                             <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                                                 <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             </div>
-                                            <p class="text-sm font-medium">ยังไม่มีรายการใบแจ้งหนี้</p>
+                                            <p class="text-sm font-medium">ยังไม่มีรายการเอกสารลงทะเบียน</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -150,7 +150,7 @@
 
                 <!-- Pagination -->
                 <div class="mt-6">
-                    {{ $structures->links() }}
+                    {{ $documents->links() }}
                 </div>
             </div>
         </div>

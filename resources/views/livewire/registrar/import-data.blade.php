@@ -2,7 +2,6 @@
     <div class="py-8 md:py-12 font-sans text-gray-800">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <!-- Header Section with Gradient -->
             <div
                 class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-200 text-white p-6 sm:p-8">
                 <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-white opacity-10 blur-2xl">
@@ -29,7 +28,6 @@
 
             <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 p-6 md:p-8">
 
-                <!-- Alerts -->
                 @if (session()->has('message'))
                     <div
                         class="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-xl shadow-sm flex items-start gap-3">
@@ -61,7 +59,6 @@
                 @endif
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Left Column: Upload Form -->
                     <div>
                         <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                             <span class="w-2 h-6 bg-indigo-500 rounded-full"></span>
@@ -74,19 +71,21 @@
                                     (.xlsx)</label>
 
                                 @if ($file)
-                                    <div class="border-2 border-solid border-indigo-100 bg-white rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
+                                    <div
+                                        class="border-2 border-solid border-indigo-100 bg-white rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden">
                                         <div class="absolute top-0 right-0 p-2">
                                             <button type="button" wire:click="cancel"
                                                 class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-gray-100"
                                                 title="ยกเลิกไฟล์นี้">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M6 18L18 6M6 6l12 12"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                 </svg>
                                             </button>
                                         </div>
-                                        <div class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
+                                        <div
+                                            class="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-3">
                                             <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -107,11 +106,12 @@
                                             @drop="isDragging = false">
 
                                         <div class="border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 flex flex-col items-center justify-center bg-gray-50 group-hover:bg-indigo-50 group-hover:border-indigo-400"
-                                            :class="{ 'border-indigo-500 bg-indigo-50': isDragging, 'border-gray-300': !isDragging }">
+                                            :class="{ 'border-indigo-500 bg-indigo-50': isDragging, 'border-gray-300': !
+                                                    isDragging }">
                                             <div
                                                 class="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
+                                                <svg class="w-8 h-8 text-indigo-500" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round"
                                                         stroke-width="2"
                                                         d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
@@ -133,21 +133,25 @@
                                 @enderror
                             </div>
 
-                            <div class="flex items-center gap-4">
+                            <div class="flex flex-col sm:flex-row items-center gap-4">
                                 <button type="submit"
-                                    class="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                                    {{ !$file ? 'disabled' : '' }} wire:loading.attr="disabled"
+                                    class="flex-1 w-full inline-flex items-center justify-center bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                    {{ !$file || $isImporting ? 'disabled' : '' }} wire:loading.attr="disabled"
                                     wire:target="file, import">
-                                    <div wire:loading.remove wire:target="import" class="flex items-center justify-center gap-2">
-                                        <svg class="w-6 h-6 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <div wire:loading.remove wire:target="file, import"
+                                        class="flex items-center gap-2 whitespace-nowrap">
+                                        <svg class="w-6 h-6 text-indigo-100" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12">
                                             </path>
                                         </svg>
-                                        <span class="text-base whitespace-nowrap">นำเข้าข้อมูล (Import)</span>
+                                        <span class="text-base">นำเข้าข้อมูล (Import)</span>
                                     </div>
-                                    <div wire:loading wire:target="import" class="flex items-center justify-center gap-2">
-                                        <svg class="animate-spin h-6 w-6 text-white"
+
+                                    <div wire:loading wire:target="file, import">
+                                        <svg class="animate-spin h-8 w-8 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10"
                                                 stroke="currentColor" stroke-width="4"></circle>
@@ -155,23 +159,40 @@
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                             </path>
                                         </svg>
-                                        <span class="text-base whitespace-nowrap">กำลังประมวลผล...</span>
                                     </div>
                                 </button>
 
-                                <!-- Loading State for File Upload (Inline) -->
-                                <div wire:loading wire:target="file" class="flex items-center gap-2 text-indigo-600 whitespace-nowrap">
-                                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span class="text-sm font-medium">กำลังอัปโหลด...</span>
-                                </div>
+                                @if ($isImporting)
+                                    <button type="button" wire:click="cancelImport"
+                                        class="w-full sm:w-auto inline-flex items-center justify-center bg-red-50 hover:bg-red-100 text-red-600 font-bold py-4 px-8 rounded-2xl border-2 border-red-200 transition-all active:scale-95"
+                                        wire:loading.attr="disabled" wire:target="cancelImport">
+                                        <div wire:loading.remove wire:target="cancelImport"
+                                            class="flex items-center gap-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            <span>ยกเลิก (Cancel)</span>
+                                        </div>
+                                        <div wire:loading wire:target="cancelImport" class="flex items-center gap-2">
+                                            <svg class="animate-spin h-5 w-5 text-red-600"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                    stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                            <span>กำลังยกเลิก...</span>
+                                        </div>
+                                    </button>
+                                @endif
                             </div>
                         </form>
                     </div>
 
-                    <!-- Right Column: Instructions -->
                     <div class="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
                         <h3 class="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor"

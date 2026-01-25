@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_structures', function (Blueprint $table) {
+        Schema::create('registration_documents', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->integer('semester');
@@ -40,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payment_structures');
+        Schema::dropIfExists('registration_documents');
     }
 };
