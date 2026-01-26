@@ -58,6 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Registrar Routes
     Route::middleware(['role:Registrar'])->prefix('registrar')->name('registrar.')->group(function () {
+        Route::get('/registration-report/preview', [App\Http\Controllers\RegistrationReportPdfController::class, 'preview'])->name('registration-report.preview');
         Route::get('/import-data', \App\Livewire\Registrar\ImportData::class)->name('import-data.index');
 
         Route::get('/majors', ManageMajors::class)->name('majors.index');
@@ -72,10 +73,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/students/{student}', \App\Livewire\Registrar\ViewStudent::class)->name('students.view');
         Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
         Route::get('/registration-status', \App\Livewire\Registrar\RegistrationStatus::class)->name('registration-status.index');
+        Route::get('/registration-report', \App\Livewire\Registrar\RegistrationReport::class)->name('registration-report.index');
     });
 
     // Student Routes
     Route::middleware(['role:Student'])->prefix('student')->name('student.')->group(function () {
+        Route::get('/registration-document/{documentId}/preview', [App\Http\Controllers\RegistrationDocumentPdfController::class, 'preview'])->name('pdf.preview');
         Route::get('/registration/form', RegistrationForm::class)->name('registration.form'); // หน้าเลือกเอกสารลงทะเบียน/Preview
         Route::get('/registration/upload', RegistrationUpload::class)->name('registration.upload');
     });

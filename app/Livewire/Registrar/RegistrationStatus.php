@@ -4,6 +4,8 @@ namespace App\Livewire\Registrar;
 
 use App\Models\Registration;
 use App\Models\Student;
+use App\Models\ClassGroup;
+use App\Models\Level;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
@@ -16,6 +18,11 @@ class RegistrationStatus extends Component
     public $search = '';
     public $perPage = 10;
     public $statusFilter = '';
+    
+    // Filter properties
+    public $isShowFilterModalOpen = false;
+    public $filterLevelId = '';
+    public $filterClassGroupId = '';
 
     // Modal properties
     public $isShowProofModalOpen = false;
@@ -149,13 +156,32 @@ class RegistrationStatus extends Component
                 });
             }
         }
+        
+        // Level Filter
+        if ($this->filterLevelId) {
+            $query->where('level_id', $this->filterLevelId);
+        }
+
+        // Class Group Filter
+        if ($this->filterClassGroupId) {
+            $query->where('class_group_id', $this->filterClassGroupId);
+        }
 
         // Sort by Student Code
         $students = $query->orderBy('student_code', 'asc')
                           ->paginate($this->perPage);
 
+        // Filter Class Groups based on Selected Level for the modal
+        $classGroupsQuery = ClassGroup::query();
+        if ($this->filterLevelId) {
+            $classGroupsQuery->where('level_id', $this->filterLevelId);
+        }
+        $classGroups = $classGroupsQuery->get();
+
         return view('livewire.registrar.registration-status', [
-            'students' => $students
+            'students' => $students,
+            'levels' => Level::all(),
+            'classGroups' => $classGroups,
         ]);
     }
 }

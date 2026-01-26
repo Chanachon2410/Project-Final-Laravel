@@ -4,10 +4,8 @@
         <!-- Logo and Toggle Section -->
         <div class="flex items-center h-12 mb-8 w-full" :class="sidebarCollapsed ? 'justify-center' : 'justify-between px-2'">
             <div x-show="!sidebarCollapsed" class="shrink-0 flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                    </svg>
+                <div class="w-12 h-12 flex items-center justify-center">
+                    <img src="{{ asset('images/logo (1).png') }}" alt="Logo" class="w-10 h-10 object-contain">
                 </div>
                 <div class="flex flex-col">
                     <span class="text-sm font-black text-gray-800 leading-none uppercase tracking-tighter">Registration</span>
@@ -182,6 +180,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">ตรวจสอบสถานะ</span>
+                    </a>
+                    <a href="{{ route('registrar.registration-report.index') }}" 
+                       class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('registrar.registration-report.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"
+                       :class="sidebarCollapsed ? 'w-12 h-12 justify-center px-0' : 'w-full justify-start px-4 gap-3'">
+                        <svg class="w-5 h-5 flex-shrink-0 {{ request()->routeIs('registrar.registration-report.*') ? 'text-white' : 'text-gray-400 group-hover:text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span x-show="!sidebarCollapsed" class="text-sm font-bold truncate">รายงานการลงทะเบียน</span>
                     </a>
                     <a href="{{ route('registrar.import-data.index') }}" 
                        class="flex items-center rounded-xl py-2.5 transition-all duration-200 group {{ request()->routeIs('registrar.import-data.*') ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-gray-500 hover:bg-indigo-50 hover:text-indigo-600' }}"

@@ -1,0 +1,35 @@
+{
+    "sarabun": {
+        "normal": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_normal_121841c9b9117be80da836adeee4b980",
+        "italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_italic_3d0f9d9eb54c565f813c5d3d304097e5",
+        "bold": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_bold_2431b68e7d75a2bcd14120f1e3f0ed6f",
+        "bold_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_bold_italic_4788ada2f263d908f8b8e6e33a097ec4",
+        "100": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_100_635338ecad6b3dd1dd248579b06ce19c",
+        "500": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_500_5dcdcd67a365e38fdff2c31571fc5426",
+        "100_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_100_italic_e1d90a02cb4926173ffa73948cc5aa24",
+        "200": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_200_4d0d224bf48c4efbfdb5464143af01d6",
+        "200_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_200_italic_71fd808e2baaebac01ab7e819350e2d3",
+        "300": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_300_7c636e1fffd334761f047f006d48b395",
+        "300_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_300_italic_8bf231ef5eb641571d7ebb63482aa9c3",
+        "500_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_500_italic_18bf67149780f001855bb575854fcb71",
+        "600": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_600_4b5a3bd5df7f55bbd2836709ef71308f",
+        "600_italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_600_italic_4fc83a11bba65eeaaf2e970f01b79de5",
+        "800": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/sarabun_800_50f0063d7d66aea825fb72d95b8abf88",
+        "800_italic": "sarabun_800_italic_6c74e26060750218e8aa720d2323be91"
+    },
+    "sarabunbold": {
+        "normal": "sarabunbold_normal_2431b68e7d75a2bcd14120f1e3f0ed6f"
+    },
+    "sarabun-regular": {
+        "normal": "sarabun_regular_normal_121841c9b9117be80da836adeee4b980"
+    },
+    "sarabun-bold": {
+        "bold": "sarabun_bold_bold_2431b68e7d75a2bcd14120f1e3f0ed6f"
+    },
+    "thsarabunnew": {
+        "normal": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/thsarabunnew_normal_477b622217b9e401996196a0a987ff09",
+        "bold": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/thsarabunnew_bold_e6334c450e3989f5df27f1bee38e4a8c",
+        "italic": "D:\\BigProject\\laravel\\Test123\\storage\\fonts\/thsarabunnew_italic_d4b6dd6076c900364e81dff7ee9b20b2",
+        "bold_italic": "thsarabunnew_bold_italic_2edc4b7166d8277ff4432774cb190c9b"
+    }
+}

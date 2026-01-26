@@ -269,6 +269,13 @@ class RegistrationDocumentForm extends Component
             return !str_contains($item['name'], 'หน่วยกิตละ');
         });
 
+        // Skip credit calculation for PWC (ปวช.)
+        $level = Level::find($this->level_id);
+        if ($level && str_contains($level->name, 'ปวช')) {
+            $this->fees = array_values($this->fees);
+            return;
+        }
+
         // Add Theory Fee
         if ($this->totalTheoryCredits > 0) {
             $amount = $this->totalTheoryCredits * $this->theoryRate;
@@ -362,18 +369,22 @@ class RegistrationDocumentForm extends Component
         ]);
 
         $sortOrder = 1;
-        foreach ($this->selectedSubjects as $subj) {
-            RegistrationDocumentItem::create([
-                'registration_document_id' => $document->id,
-                'name' => $subj['name'],
-                'amount' => 0, 
-                'is_subject' => true,
-                'subject_id' => $subj['id'],
-                'credit' => $subj['credit'],
-                'theory_hour' => $subj['hour_theory'],
-                'practical_hour' => $subj['hour_practical'],
-                'sort_order' => $sortOrder++,
-            ]);
+
+        // Save subjects ONLY if NOT PWC (ปวช.)
+        if (!str_contains($level->name, 'ปวช')) {
+            foreach ($this->selectedSubjects as $subj) {
+                RegistrationDocumentItem::create([
+                    'registration_document_id' => $document->id,
+                    'name' => $subj['name'],
+                    'amount' => 0, 
+                    'is_subject' => true,
+                    'subject_id' => $subj['id'],
+                    'credit' => $subj['credit'],
+                    'theory_hour' => $subj['hour_theory'],
+                    'practical_hour' => $subj['hour_practical'],
+                    'sort_order' => $sortOrder++,
+                ]);
+            }
         }
 
         foreach ($this->fees as $fee) {

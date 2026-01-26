@@ -43,18 +43,17 @@
                             </select>
                         </div>
 
-                        <!-- Status Filter -->
-                        <div class="flex items-center bg-white border border-gray-200 rounded-xl px-3 py-1.5 shadow-sm">
-                            <span class="text-sm text-gray-500 mr-2 whitespace-nowrap">สถานะ:</span>
-                            <select wire:model.live="statusFilter"
-                                class="border-none focus:ring-0 text-sm font-bold text-gray-700 bg-transparent p-0 min-w-[100px] cursor-pointer">
-                                <option value="">ทั้งหมด</option>
-                                <option value="pending">รอตรวจสอบ</option>
-                                <option value="approved">อนุมัติแล้ว</option>
-                                <option value="rejected">ถูกปฏิเสธ</option>
-                                <option value="unregistered">ยังไม่ลงทะเบียน</option>
-                            </select>
-                        </div>
+                        <!-- Filter Button -->
+                        <button wire:click="$set('isShowFilterModalOpen', true)" class="inline-flex items-center px-4 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all ml-2">
+                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            ตัวกรอง
+                            @if($filterLevelId || $filterClassGroupId || $statusFilter) 
+                                <span class="ml-2 flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                                </span>
+                            @endif
+                        </button>
                     </div>
 
                     <!-- Search Box -->
@@ -527,6 +526,74 @@
                         <button type="button" wire:click="closeProofModal"
                             class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
                             ปิดหน้าต่าง
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Filter Modal -->
+    @if ($isShowFilterModalOpen)
+        <div class="fixed z-[99] inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" wire:click="$set('isShowFilterModalOpen', false)" aria-hidden="true"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-6 py-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                ตัวกรองข้อมูล
+                            </h3>
+                            <button wire:click="$set('isShowFilterModalOpen', false)" class="text-gray-400 hover:text-gray-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">สถานะการลงทะเบียน</label>
+                                <select wire:model.live="statusFilter" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-sm">
+                                    <option value="">ทั้งหมด</option>
+                                    <option value="pending">รอตรวจสอบ</option>
+                                    <option value="approved">อนุมัติแล้ว</option>
+                                    <option value="rejected">ถูกปฏิเสธ</option>
+                                    <option value="unregistered">ยังไม่ลงทะเบียน</option>
+                                </select>
+                            </div>
+
+                            <!-- Level Filter -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">ระดับชั้น</label>
+                                <select wire:model.live="filterLevelId" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-sm">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach($levels as $level)
+                                        <option value="{{ $level->id }}">{{ $level->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Class Group Filter -->
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">กลุ่มเรียน</label>
+                                <select wire:model.live="filterClassGroupId" class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-sm">
+                                    <option value="">ทั้งหมด</option>
+                                    @foreach($classGroups as $group)
+                                        <option value="{{ $group->id }}">{{ $group->course_group_name }} ({{ $group->level->name ?? '-' }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse rounded-b-2xl">
+                        <button type="button" wire:click="$set('isShowFilterModalOpen', false)" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            ตกลง
+                        </button>
+                        <button type="button" wire:click="$set('filterLevelId', ''); $set('filterClassGroupId', ''); $set('statusFilter', '');" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            ล้างค่า
                         </button>
                     </div>
                 </div>

@@ -6,7 +6,9 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Invoice</title>
+
+    {{-- จุดที่แก้ไข: เปลี่ยนจาก Invoice เป็นตัวแปร pdf_title เพื่อให้ Print to PDF เห็นชื่อไฟล์ --}}
+    <title>{{ $pdf_title ?? 'Registration_Document' }}</title>
 
     <style>
         /*
@@ -23,13 +25,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 100;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Thin.ttf') : asset('fonts/Sarabun-Thin.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Thin.ttf') : asset('fonts/Sarabun/Sarabun-Thin.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 100;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ThinItalic.ttf') : asset('fonts/Sarabun-ThinItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-ThinItalic.ttf') : asset('fonts/Sarabun/Sarabun-ThinItalic.ttf') }}") format('truetype');
         }
 
         /* ExtraLight (200) */
@@ -37,13 +40,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 200;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraLight.ttf') : asset('fonts/Sarabun-ExtraLight.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-ExtraLight.ttf') : asset('fonts/Sarabun/Sarabun-ExtraLight.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 200;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraLightItalic.ttf') : asset('fonts/Sarabun-ExtraLightItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-ExtraLightItalic.ttf') : asset('fonts/Sarabun/Sarabun-ExtraLightItalic.ttf') }}") format('truetype');
         }
 
         /* Light (300) */
@@ -51,13 +55,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 300;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Light.ttf') : asset('fonts/Sarabun-Light.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Light.ttf') : asset('fonts/Sarabun/Sarabun-Light.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 300;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-LightItalic.ttf') : asset('fonts/Sarabun-LightItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-LightItalic.ttf') : asset('fonts/Sarabun/Sarabun-LightItalic.ttf') }}") format('truetype');
         }
 
         /* Regular (400) */
@@ -66,14 +71,15 @@
             font-style: normal;
             font-weight: 400;
             font-weight: normal;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Regular.ttf') : asset('fonts/Sarabun-Regular.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Regular.ttf') : asset('fonts/Sarabun/Sarabun-Regular.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 400;
             font-weight: normal;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Italic.ttf') : asset('fonts/Sarabun-Italic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Italic.ttf') : asset('fonts/Sarabun/Sarabun-Italic.ttf') }}") format('truetype');
         }
 
         /* Medium (500) */
@@ -81,13 +87,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 500;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Medium.ttf') : asset('fonts/Sarabun-Medium.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Medium.ttf') : asset('fonts/Sarabun/Sarabun-Medium.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 500;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-MediumItalic.ttf') : asset('fonts/Sarabun-MediumItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-MediumItalic.ttf') : asset('fonts/Sarabun/Sarabun-MediumItalic.ttf') }}") format('truetype');
         }
 
         /* SemiBold (600) */
@@ -95,13 +102,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 600;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-SemiBold.ttf') : asset('fonts/Sarabun-SemiBold.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-SemiBold.ttf') : asset('fonts/Sarabun/Sarabun-SemiBold.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 600;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-SemiBoldItalic.ttf') : asset('fonts/Sarabun-SemiBoldItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-SemiBoldItalic.ttf') : asset('fonts/Sarabun/Sarabun-SemiBoldItalic.ttf') }}") format('truetype');
         }
 
         /* Bold (700) */
@@ -110,14 +118,15 @@
             font-style: normal;
             font-weight: 700;
             font-weight: bold;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-Bold.ttf') : asset('fonts/Sarabun-Bold.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-Bold.ttf') : asset('fonts/Sarabun/Sarabun-Bold.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 700;
             font-weight: bold;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-BoldItalic.ttf') : asset('fonts/Sarabun-BoldItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-BoldItalic.ttf') : asset('fonts/Sarabun/Sarabun-BoldItalic.ttf') }}") format('truetype');
         }
 
         /* ExtraBold (800) */
@@ -125,13 +134,14 @@
             font-family: 'Sarabun';
             font-style: normal;
             font-weight: 800;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraBold.ttf') : asset('fonts/Sarabun-ExtraBold.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-ExtraBold.ttf') : asset('fonts/Sarabun/Sarabun-ExtraBold.ttf') }}") format('truetype');
         }
+
         @font-face {
             font-family: 'Sarabun';
             font-style: italic;
             font-weight: 800;
-            src: url("{{ $isPdf ? public_path('fonts/Sarabun-ExtraBoldItalic.ttf') : asset('fonts/Sarabun-ExtraBoldItalic.ttf') }}") format('truetype');
+            src: url("{{ $isPdf ? public_path('fonts/Sarabun/Sarabun-ExtraBoldItalic.ttf') : asset('fonts/Sarabun/Sarabun-ExtraBoldItalic.ttf') }}") format('truetype');
         }
 
         .sarabun-thin {
@@ -233,7 +243,6 @@
         body {
             font-family: "Sarabun", sans-serif;
             font-size: 14pt;
-            /* แนะนำให้ปรับเป็น 14pt หรือ 16pt สำหรับ Sarabun เพราะฟอนต์นี้ตัวเล็กกว่าปกติ */
             line-height: 1.1;
             margin: 0;
             padding: 0;
@@ -241,27 +250,26 @@
         }
 
         /* Ensure tables inherit font family in PDF */
-        table, th, td {
+        table,
+        th,
+        td {
             font-family: "Sarabun", sans-serif;
         }
 
         /*
-         * This is the main container for each page.
-         * Page-specific padding should be handled within the page's own container div.
+         * Main Page Container
          */
         .pdf-page {
             width: 210mm;
             height: 297mm;
             padding: 0;
-            /* Reset padding, will be handled by each page's container */
             box-sizing: border-box;
             position: relative;
             background: white;
             overflow: hidden;
-            /* Clipped content is important for PDF */
         }
 
-        /* Ensures each included page starts on a new sheet in the PDF */
+        /* Page Break */
         .page-break {
             page-break-after: always;
         }
@@ -289,17 +297,13 @@
 
         /*
          * PREVIEW MODE OVERRIDES
-         * These styles are applied only when viewing in a browser (not generating a PDF).
          */
         @if (!$isPdf)
             body {
                 background-color: transparent;
-                /* Make body transparent to see wrapper */
                 font-family: "Sarabun", sans-serif;
             }
 
-
-            /* The grey background for preview */
             .preview-wrapper {
                 background-color: #52525b;
                 padding: 30px;
@@ -309,20 +313,14 @@
                 gap: 30px;
                 height: 100%;
                 overflow-y: auto;
-                /* Allow scrolling between pages */
             }
 
-            /* Overrides for the page container in preview */
             .pdf-page {
                 height: auto !important;
-                /* Let content define the height */
                 min-height: 297mm;
-                /* Keep the A4 aspect ratio */
                 margin: 0 auto;
                 box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                /* Add shadow for depth */
                 overflow: visible !important;
-                /* Show any overflowing content */
             }
         @endif
     </style>
@@ -336,7 +334,6 @@
     @endif
 
     {{-- Include the three separate page templates --}}
-    {{-- All variables are passed automatically --}}
     @include('livewire.pdf.registration-document.pages.page1')
     @include('livewire.pdf.registration-document.pages.page2')
     @include('livewire.pdf.registration-document.pages.page3')
