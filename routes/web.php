@@ -54,6 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Teacher Routes
     Route::middleware(['role:Teacher'])->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/students/{groupId?}', ViewStudents::class)->name('students.view');
+        Route::get('/registration-report/preview', [App\Http\Controllers\RegistrationReportPdfController::class, 'preview'])->name('registration-report.preview');
     });
 
     // Registrar Routes

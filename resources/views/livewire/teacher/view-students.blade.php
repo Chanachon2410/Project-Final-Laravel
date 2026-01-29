@@ -3,60 +3,171 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
             <!-- Header Section with Gradient -->
-            <div class="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-200 text-white p-6 sm:p-8">
+            <div class="mb-6 relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-indigo-200 text-white p-6 sm:p-8">
                 <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-white opacity-10 blur-2xl"></div>
                 <div class="absolute bottom-0 left-0 -ml-10 -mb-10 w-32 h-32 rounded-full bg-pink-500 opacity-20 blur-xl"></div>
                 
-                <div class="relative z-10 flex items-center gap-4">
-                    <div class="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-white/20 backdrop-blur-sm rounded-xl border border-white/10">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-bold">สรุปผลการลงทะเบียนนักเรียน</h2>
+                            <p class="text-indigo-100 text-sm mt-1 opacity-80 pl-1">ตรวจสอบและอนุมัติหลักฐานการลงทะเบียนนักเรียนในที่ปรึกษา</p>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-bold">ตรวจสอบสถานะการลงทะเบียน</h2>
-                        <p class="text-indigo-100 text-sm mt-1 opacity-80">อนุมัติ ตรวจสอบหลักฐาน และจัดการสถานะการลงทะเบียนของนักเรียน</p>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                <!-- Card: Total Students -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-indigo-50 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-wider">นักเรียนในที่ปรึกษา</dt>
+                                    <dd class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total'] ?? 0 }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Completed -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-green-50 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-wider">ลงทะเบียนสมบูรณ์</dt>
+                                    <dd class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['paid'] ?? 0 }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Pending -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-yellow-50 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-wider">รอคุณครูตรวจสอบ</dt>
+                                    <dd class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['pending'] ?? 0 }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Not Registered -->
+                <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 bg-red-50 rounded-lg p-3">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-xs font-bold text-gray-400 uppercase tracking-wider">ยังไม่ลงทะเบียน</dt>
+                                    <dd class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['not_registered'] ?? 0 }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control & Filters Section -->
+            <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 mb-6">
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                        <h3 class="text-sm font-bold text-gray-700 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                            ตัวกรองและจัดการข้อมูล
+                        </h3>
+                        
+                        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                            @if($semester_id && $selectedGroupId)
+                                <a href="{{ route('teacher.registration-report.preview', ['semester_id' => $semester_id, 'class_group_id' => $selectedGroupId]) }}" 
+                                   target="_blank"
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    พิมพ์รายงานห้องนี้ (PDF)
+                                </a>
+                            @endif
+                            <button wire:click="$set('isShowFilterModalOpen', true)" class="inline-flex items-center px-4 py-2 border border-gray-200 shadow-sm text-xs font-bold rounded-xl text-gray-700 bg-white hover:bg-gray-50 transition-all">
+                                <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                                ตัวกรองละเอียด
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                        <!-- Semester Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase">ภาคเรียน/ปีการศึกษา</label>
+                            <select wire:model.live="semester_id" class="w-full border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                                @foreach ($semesters as $sem)
+                                    <option value="{{ $sem->id }}">
+                                        {{ $sem->semester }}/{{ $sem->year }} {{ $sem->is_active ? '(ปัจจุบัน)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Class Group Filter -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase">ห้องเรียนที่ปรึกษา</label>
+                            <select wire:model.live="selectedGroupId" class="w-full border-gray-200 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm py-2">
+                                <option value="">รวมทุกห้องที่ดูแล</option>
+                                @foreach($advisedGroups as $group)
+                                    <option value="{{ $group->id }}">{{ $group->course_group_name }} ({{ $group->level->name }} ปี {{ $group->level_year }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Search -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1 ml-1 uppercase">ค้นหารายชื่อ</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                </div>
+                                <input wire:model.live.debounce.300ms="search" type="text" placeholder="ชื่อ หรือ รหัสนักเรียน..." class="block w-full pl-9 pr-4 py-2 border-gray-200 rounded-xl text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 p-6">
-                <!-- Filters & Controls -->
-                <div class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4">
-                    <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                        <!-- PerPage -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-bold text-gray-600 whitespace-nowrap">แสดง:</span>
-                            <select wire:model.live="perPage" id="perPage" class="bg-white border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-20 py-2 cursor-pointer shadow-sm transition-all">
-                                <option value="10">10</option>
-                                <option value="25">25</option>
-                                <option value="50">50</option>
-                                <option value="100">100</option>
-                            </select>
-                        </div>
-
-                        <!-- Filter Button -->
-                        <button wire:click="$set('isShowFilterModalOpen', true)" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
-                            <svg class="w-5 h-5 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                            ตัวกรอง
-                            @if($statusFilter || ($selectedGroupId && !$selectedGroupId)) 
-                                <span class="ml-2 flex h-2 w-2 relative">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                                </span>
-                            @endif
-                        </button>
+                <!-- PerPage Control -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-gray-600">แสดง:</span>
+                        <select wire:model.live="perPage" class="bg-white border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-20 py-1.5 cursor-pointer shadow-sm transition-all">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
                     </div>
-                    
-                    <!-- Search Box -->
-                    <div class="w-full lg:w-80 flex gap-2">
-                        <div class="relative flex-grow">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </div>
-                            <input wire:model.live.debounce.300ms="search" id="search" type="text" placeholder="ชื่อ, รหัสนักเรียน..." class="block w-full pl-10 pr-4 py-2.5 border-gray-300 rounded-xl text-sm focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-shadow">
-                        </div>
-                        <button wire:click="$refresh" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center justify-center active:scale-95">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                        </button>
+                    <div class="text-xs text-gray-400 font-medium">
+                        พบข้อมูลทั้งหมด {{ $students->total() }} รายการ
                     </div>
                 </div>
 

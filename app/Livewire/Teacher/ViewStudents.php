@@ -17,6 +17,7 @@ class ViewStudents extends Component
     use WithPagination;
 
     public $activeSemester;
+    public $semester_id; // Added for semester filtering
     public $selectedGroupId; // Selected group ID
     
     // Filters
@@ -34,11 +35,19 @@ class ViewStudents extends Component
     {
         $this->selectedGroupId = $groupId;
         $this->activeSemester = Semester::where('is_active', true)->first();
+        if ($this->activeSemester) {
+            $this->semester_id = $this->activeSemester->id;
+        }
     }
 
     protected function getTeacher()
     {
         return Teacher::where('user_id', Auth::id())->first();
+    }
+
+    public function updatingSemesterId()
+    {
+        $this->resetPage();
     }
 
     public function updatingSearch()
@@ -58,10 +67,11 @@ class ViewStudents extends Component
 
     public function viewProof($studentId)
     {
-        $this->selectedStudent = Student::with(['registrations' => function ($query) {
-            if ($this->activeSemester) {
-                $query->where('semester', $this->activeSemester->semester)
-                      ->where('year', $this->activeSemester->year);
+        $selectedSemester = Semester::find($this->semester_id);
+        $this->selectedStudent = Student::with(['registrations' => function ($query) use ($selectedSemester) {
+            if ($selectedSemester) {
+                $query->where('semester', $selectedSemester->semester)
+                      ->where('year', $selectedSemester->year);
             }
         }])->find($studentId);
 
@@ -101,6 +111,7 @@ class ViewStudents extends Component
         if (!$teacher) return;
         
         $approverName = $teacher->title . $teacher->firstname . ' ' . $teacher->lastname;
+        $selectedSemester = Semester::find($this->semester_id);
 
         if ($registrationId) {
             $registration = Registration::find($registrationId);
@@ -113,11 +124,11 @@ class ViewStudents extends Component
                 }
                 $registration->update($data);
             }
-        } elseif ($studentId && $this->activeSemester) {
+        } elseif ($studentId && $selectedSemester) {
             $data = [
                 'student_id' => $studentId,
-                'semester' => $this->activeSemester->semester,
-                'year' => $this->activeSemester->year,
+                'semester' => $selectedSemester->semester,
+                'year' => $selectedSemester->year,
                 'status' => $status,
             ];
             if ($status === 'approved') {
@@ -131,16 +142,18 @@ class ViewStudents extends Component
     {
         $teacher = $this->getTeacher();
         $advisedGroups = collect();
+        $stats = ['total' => 0, 'paid' => 0, 'pending' => 0, 'not_registered' => 0];
+        $selectedSemester = Semester::find($this->semester_id);
         
         if ($teacher) {
             $advisedGroups = $teacher->advisedClassGroups()->with('level')->get();
             $advisedGroupIds = $advisedGroups->pluck('id');
 
             $query = Student::query()
-                ->with(['classGroup', 'level', 'registrations' => function ($q) {
-                    if ($this->activeSemester) {
-                        $q->where('semester', $this->activeSemester->semester)
-                          ->where('year', $this->activeSemester->year);
+                ->with(['classGroup', 'level', 'registrations' => function ($q) use ($selectedSemester) {
+                    if ($selectedSemester) {
+                        $q->where('semester', $selectedSemester->semester)
+                          ->where('year', $selectedSemester->year);
                     }
                 }]);
 
@@ -148,6 +161,23 @@ class ViewStudents extends Component
                 $query->where('class_group_id', $this->selectedGroupId);
             } else {
                 $query->whereIn('class_group_id', $advisedGroupIds);
+            }
+
+            // Stats Calculation (Before applying status/search filters, but after group filter)
+            $statsQuery = clone $query;
+            $allMatchingStudents = $statsQuery->get();
+            $stats['total'] = $allMatchingStudents->count();
+            foreach ($allMatchingStudents as $student) {
+                $reg = $student->registrations->first();
+                if (!$reg) {
+                    $stats['not_registered']++;
+                } elseif ($reg->status == 'approved') {
+                    $stats['paid']++;
+                } elseif ($reg->status == 'pending') {
+                    $stats['pending']++;
+                } else {
+                    $stats['not_registered']++;
+                }
             }
 
             if ($this->search) {
@@ -160,17 +190,17 @@ class ViewStudents extends Component
 
             if ($this->statusFilter) {
                 if ($this->statusFilter === 'unregistered') {
-                    $query->whereDoesntHave('registrations', function ($q) {
-                        if ($this->activeSemester) {
-                            $q->where('semester', $this->activeSemester->semester)
-                              ->where('year', $this->activeSemester->year);
+                    $query->whereDoesntHave('registrations', function ($q) use ($selectedSemester) {
+                        if ($selectedSemester) {
+                            $q->where('semester', $selectedSemester->semester)
+                              ->where('year', $selectedSemester->year);
                         }
                     });
                 } else {
-                    $query->whereHas('registrations', function ($q) {
-                        if ($this->activeSemester) {
-                            $q->where('semester', $this->activeSemester->semester)
-                              ->where('year', $this->activeSemester->year)
+                    $query->whereHas('registrations', function ($q) use ($selectedSemester) {
+                        if ($selectedSemester) {
+                            $q->where('semester', $selectedSemester->semester)
+                              ->where('year', $selectedSemester->year)
                               ->where('status', $this->statusFilter);
                         }
                     });
@@ -184,7 +214,9 @@ class ViewStudents extends Component
 
         return view('livewire.teacher.view-students', [
             'students' => $students,
-            'advisedGroups' => $advisedGroups
+            'advisedGroups' => $advisedGroups,
+            'semesters' => Semester::orderBy('year', 'desc')->orderBy('semester', 'desc')->get(),
+            'stats' => $stats
         ]);
     }
 }
