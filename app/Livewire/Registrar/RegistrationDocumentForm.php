@@ -14,6 +14,7 @@ use Livewire\Component;
 class RegistrationDocumentForm extends Component
 {
     public $currentStep = 1;
+    public ?RegistrationDocument $editingDocument = null;
 
     // Step 1: Basic Info
     public $semester_id; // Added to link with semesters table
@@ -48,16 +49,79 @@ class RegistrationDocumentForm extends Component
     public $searchFee = '';
     public $fees = [];
 
-    public function mount()
+    public function mount($document = null)
     {
-        // Try to find currently active semester
-        $activeSemester = \App\Models\Semester::where('is_active', true)->first();
-        if ($activeSemester) {
-            $this->semester_id = $activeSemester->id;
-            $this->populateFromSemester($activeSemester);
-        } else {
-            $this->year = date('Y') + 543;
+        // Handle case where $document is passed as an ID (from route parameter without implicit binding)
+        if ($document && !($document instanceof RegistrationDocument)) {
+            $document = RegistrationDocument::find($document);
         }
+
+        if ($document && $document instanceof RegistrationDocument && $document->exists) {
+            $this->editingDocument = $document;
+            $this->populateForEdit();
+        } else {
+            // Try to find currently active semester
+            $activeSemester = \App\Models\Semester::where('is_active', true)->first();
+            if ($activeSemester) {
+                $this->semester_id = $activeSemester->id;
+                $this->populateFromSemester($activeSemester);
+            } else {
+                $this->year = date('Y') + 543;
+            }
+        }
+    }
+
+    public function populateForEdit()
+    {
+        $doc = $this->editingDocument;
+        $this->semester = $doc->semester;
+        $this->year = $doc->year;
+        
+        $semester = \App\Models\Semester::where('semester', $doc->semester)
+                                      ->where('year', $doc->year)
+                                      ->first();
+        if ($semester) {
+            $this->semester_id = $semester->id;
+        }
+
+        $this->major_id = $doc->major_id;
+        $this->level_id = $doc->level_id;
+        $this->custom_ref2 = $doc->custom_ref2;
+        $this->payment_start_date = $doc->payment_start_date ? $doc->payment_start_date->format('Y-m-d') : null;
+        $this->payment_end_date = $doc->payment_end_date ? $doc->payment_end_date->format('Y-m-d') : null;
+        $this->late_payment_start_date = $doc->late_payment_start_date ? $doc->late_payment_start_date->format('Y-m-d') : null;
+        $this->late_payment_end_date = $doc->late_payment_end_date ? $doc->late_payment_end_date->format('Y-m-d') : null;
+        $this->late_fee_type = $doc->late_fee_type;
+        $this->late_fee_amount = $doc->late_fee_amount;
+        $this->late_fee_max_days = $doc->late_fee_max_days;
+        
+        $this->calculate_days = $doc->late_fee_max_days;
+        $this->calculateMaxFee();
+
+        foreach ($doc->items as $item) {
+            if ($item->is_subject) {
+                // Try to get subject details to ensure we have the code
+                $subject = Subject::find($item->subject_id);
+                $code = $subject ? $subject->subject_code : ''; // Fallback if subject deleted
+                
+                $this->selectedSubjects[$item->subject_id] = [
+                    'id' => $item->subject_id,
+                    'code' => $code,
+                    'name' => $item->name,
+                    'credit' => $item->credit,
+                    'hour_theory' => $item->theory_hour,
+                    'hour_practical' => $item->practical_hour,
+                ];
+            } else {
+                $this->fees[] = [
+                    'id' => null,
+                    'name' => $item->name,
+                    'amount' => (float)$item->amount,
+                ];
+            }
+        }
+        
+        $this->calculateCredits();
     }
 
     public function updatedSemesterId($value)
@@ -77,7 +141,6 @@ class RegistrationDocumentForm extends Component
         $this->payment_start_date = $semester->registration_start_date->format('Y-m-d');
         $this->payment_end_date = $semester->registration_end_date->format('Y-m-d');
         
-        // Use the late registration dates defined in the semester
         $this->late_payment_start_date = $semester->late_registration_start_date ? $semester->late_registration_start_date->format('Y-m-d') : '';
         $this->late_payment_end_date = $semester->late_registration_end_date ? $semester->late_registration_end_date->format('Y-m-d') : '';
     }
@@ -112,10 +175,20 @@ class RegistrationDocumentForm extends Component
 
     public function updatedLevelId($value)
     {
-        // We only keep it for triggering re-render of majors list, 
-        // removing the automatic resetting of fee types and rates 
-        // so the user's manual input or previous values aren't lost.
+        // Only clear major if changing level manually and not during initial edit load (handled by mount)
+        // But livewire calls this on every update. 
+        // We can check if major_id is already set and compatible? 
+        // Simpler: If user changes level, major usually becomes invalid.
+        // But during mount, we set level_id, which might trigger this?
+        // No, updatedLevelId is only called on user interaction (frontend update).
+        
         if (!$value) {
+            $this->major_id = null;
+            $this->custom_ref2 = '';
+        } else {
+            // Check if current major is valid for this level?
+            // For now, just reset major if it doesn't match? 
+            // Let's just keep it simple as before.
             $this->major_id = null;
             $this->custom_ref2 = '';
         }
@@ -126,7 +199,6 @@ class RegistrationDocumentForm extends Component
         if ($value) {
             $major = Major::find($value);
             if ($major) {
-                // Ensure custom_ref2 is updated with major_code immediately
                 $this->custom_ref2 = $major->major_code;
             }
         } else {
@@ -139,7 +211,7 @@ class RegistrationDocumentForm extends Component
     {
         $levels = Level::all();
         $semesters = \App\Models\Semester::orderBy('year', 'desc')->orderBy('semester', 'desc')->get();
-        $majors = collect(); // FIX: Initialize variable
+        $majors = collect();
 
         if ($this->level_id) {
             $level = Level::find($this->level_id);
@@ -180,7 +252,7 @@ class RegistrationDocumentForm extends Component
         return view('livewire.registrar.registration-document-form', [
             'majors' => $majors,
             'levels' => $levels,
-            'semesters' => $semesters, // Passed semesters to view
+            'semesters' => $semesters,
             'subjects' => $subjects,
             'availableFees' => $availableFees,
         ]);
@@ -190,7 +262,6 @@ class RegistrationDocumentForm extends Component
     {
         $this->validateStep();
         
-        // Auto-calculate tuition fees when moving from subjects (Step 2) to fees (Step 3)
         if ($this->currentStep == 2) {
             $this->calculateTuitionFees();
         }
@@ -221,8 +292,6 @@ class RegistrationDocumentForm extends Component
         }
     }
 
-    // --- Step 2 Logic ---
-
     public function toggleSubject($subjectId)
     {
         $subject = Subject::find($subjectId);
@@ -250,8 +319,6 @@ class RegistrationDocumentForm extends Component
         $this->totalPracticalCredits = 0;
 
         foreach ($this->selectedSubjects as $subj) {
-            // Assume 1 hour = 1 credit for theory
-            // Remaining credits are practical
             $t = (int)$subj['hour_theory']; 
             $p = (float)$subj['credit'] - $t; 
             
@@ -260,23 +327,18 @@ class RegistrationDocumentForm extends Component
         }
     }
 
-    // --- Step 3 Logic ---
-
     public function calculateTuitionFees()
     {
-        // Remove existing auto-generated fees to prevent duplication
         $this->fees = array_filter($this->fees, function($item) {
             return !str_contains($item['name'], 'หน่วยกิตละ');
         });
 
-        // Skip credit calculation for PWC (ปวช.)
         $level = Level::find($this->level_id);
         if ($level && str_contains($level->name, 'ปวช')) {
             $this->fees = array_values($this->fees);
             return;
         }
 
-        // Add Theory Fee
         if ($this->totalTheoryCredits > 0) {
             $amount = $this->totalTheoryCredits * $this->theoryRate;
             if ($amount > 0) {
@@ -288,7 +350,6 @@ class RegistrationDocumentForm extends Component
             }
         }
 
-        // Add Practical Fee
         if ($this->totalPracticalCredits > 0) {
             $amount = $this->totalPracticalCredits * $this->practicalRate;
             if ($amount > 0) {
@@ -341,8 +402,6 @@ class RegistrationDocumentForm extends Component
     
     public function getBahtText()
     {
-        // Simple Baht Text function or use Service
-        // For now, returning empty or simple logic if Service not available
         return '-'; 
     }
 
@@ -352,7 +411,7 @@ class RegistrationDocumentForm extends Component
         $level = Level::find($this->level_id);
         $documentName = "เอกสารลงทะเบียน {$major->major_name} {$level->name} {$this->semester}/{$this->year}";
 
-        $document = RegistrationDocument::create([
+        $data = [
             'name' => $documentName,
             'semester' => $this->semester,
             'year' => $this->year,
@@ -366,7 +425,17 @@ class RegistrationDocumentForm extends Component
             'late_fee_type' => $this->late_fee_type,
             'late_fee_amount' => $this->late_fee_amount,
             'late_fee_max_days' => $this->late_fee_type == 'daily' ? $this->late_fee_max_days : null,
-        ]);
+        ];
+
+        if ($this->editingDocument) {
+            $this->editingDocument->update($data);
+            $document = $this->editingDocument;
+            $document->items()->delete();
+            $message = 'แก้ไขเอกสารลงทะเบียนสำเร็จ!';
+        } else {
+            $document = RegistrationDocument::create($data);
+            $message = 'สร้างเอกสารลงทะเบียนสำเร็จ!';
+        }
 
         $sortOrder = 1;
 
@@ -399,7 +468,7 @@ class RegistrationDocumentForm extends Component
             }
         }
 
-        session()->flash('message', 'สร้างเอกสารลงทะเบียนสำเร็จ!');
+        session()->flash('message', $message);
         return redirect()->route('registrar.registration-documents.index');
     }
 }

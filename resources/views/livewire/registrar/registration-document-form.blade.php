@@ -15,15 +15,22 @@
                     <div>
                         <h2 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
                             <span class="bg-white/20 p-2 rounded-xl">
-                                <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
+                                @if($editingDocument)
+                                    <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                @else
+                                    <svg class="w-8 h-8 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                @endif
                             </span>
-                            สร้างเอกสารลงทะเบียนใหม่
+                            {{ $editingDocument ? 'แก้ไขเอกสารลงทะเบียน' : 'สร้างเอกสารลงทะเบียนใหม่' }}
                         </h2>
-                        <p class="text-indigo-100 text-sm mt-2 pl-14 opacity-80">กำหนดโครงสร้างค่าเทอม รายวิชา
-                            และค่าใช้จ่ายต่างๆ ตามขั้นตอน</p>
+                        <p class="text-indigo-100 text-sm mt-2 pl-14 opacity-80">
+                            {{ $editingDocument ? 'แก้ไขข้อมูลโครงสร้างค่าเทอม รายวิชา และค่าใช้จ่ายต่างๆ' : 'กำหนดโครงสร้างค่าเทอม รายวิชา และค่าใช้จ่ายต่างๆ ตามขั้นตอน' }}
+                        </p>
                     </div>
 
                     <a href="{{ route('registrar.registration-documents.index') }}" 
@@ -620,7 +627,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                ยืนยันและสร้างเอกสารลงทะเบียน
+                                {{ $editingDocument ? 'บันทึกการแก้ไขเอกสารลงทะเบียน' : 'ยืนยันและสร้างเอกสารลงทะเบียน' }}
                             </button>
                         @endif
                     </div>

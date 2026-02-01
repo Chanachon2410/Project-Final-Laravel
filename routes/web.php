@@ -71,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/tuition-fees', ManageTuitionFees::class)->name('tuition-fees.index');
         Route::get('/registration-documents', RegistrationDocumentList::class)->name('registration-documents.index');
         Route::get('/registration-documents/create', RegistrationDocumentForm::class)->name('registration-documents.create');
+        Route::get('/registration-documents/{document}/edit', RegistrationDocumentForm::class)->name('registration-documents.edit');
         Route::get('/students/{student}', \App\Livewire\Registrar\ViewStudent::class)->name('students.view');
         Route::get('/students', \App\Livewire\Registrar\ManageStudents::class)->name('students.index');
         Route::get('/registration-status', \App\Livewire\Registrar\RegistrationStatus::class)->name('registration-status.index');
