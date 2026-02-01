@@ -18,8 +18,9 @@ class RegistrationDocumentList extends Component
     {
         $document = RegistrationDocument::find($id);
         if ($document) {
+            $name = $document->name;
             $document->delete();
-            session()->flash('message', 'ลบเอกสารลงทะเบียนเรียบร้อยแล้ว');
+            session()->flash('message', "ลบเอกสาร \"{$name}\" เรียบร้อยแล้ว");
         }
     }
 
@@ -29,6 +30,9 @@ class RegistrationDocumentList extends Component
         if ($document) {
             $document->is_active = !$document->is_active;
             $document->save();
+            
+            $status = $document->is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน';
+            $this->dispatch('swal:success', message: "เปลี่ยนสถานะ \"{$document->name}\" เป็น{$status}เรียบร้อยแล้ว");
         }
     }
 

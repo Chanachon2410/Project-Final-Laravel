@@ -431,10 +431,10 @@ class RegistrationDocumentForm extends Component
             $this->editingDocument->update($data);
             $document = $this->editingDocument;
             $document->items()->delete();
-            $message = 'แก้ไขเอกสารลงทะเบียนสำเร็จ!';
+            $message = "แก้ไขเอกสาร \"{$document->name}\" สำเร็จ!";
         } else {
             $document = RegistrationDocument::create($data);
-            $message = 'สร้างเอกสารลงทะเบียนสำเร็จ!';
+            $message = "สร้างเอกสาร \"{$document->name}\" สำเร็จ!";
         }
 
         $sortOrder = 1;
