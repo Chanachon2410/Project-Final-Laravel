@@ -14,6 +14,8 @@ class Registration extends Model
         'semester',
         'year',
         'status',
+        'approved_by',
+        'remarks',
         'registration_card_file',
         'slip_file_name',
     ];

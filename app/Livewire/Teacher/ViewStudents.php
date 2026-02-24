@@ -28,8 +28,15 @@ class ViewStudents extends Component
     // Modal state
     public $isShowProofModalOpen = false;
     public $isShowFilterModalOpen = false; // Filter modal state
+    public $isShowRemarksModalOpen = false;
     public $selectedRegistration = null;
     public $selectedStudent = null;
+
+    // Form properties for status update
+    public $remarks = '';
+    public $tempStatus = '';
+    public $tempRegistrationId = null;
+    public $tempStudentId = null;
 
     public function mount($groupId = null)
     {
@@ -105,7 +112,39 @@ class ViewStudents extends Component
         }
     }
 
-    public function updateStatus($registrationId, $status, $studentId = null)
+    public function openRemarksModal($registrationId, $status, $studentId = null)
+    {
+        $this->tempRegistrationId = $registrationId;
+        $this->tempStatus = $status;
+        $this->tempStudentId = $studentId;
+        
+        // Pre-fill remarks if editing existing registration
+        if ($registrationId) {
+            $reg = Registration::find($registrationId);
+            $this->remarks = $reg->remarks ?? '';
+        } else {
+            $this->remarks = '';
+        }
+
+        $this->isShowRemarksModalOpen = true;
+    }
+
+    public function closeRemarksModal()
+    {
+        $this->isShowRemarksModalOpen = false;
+        $this->remarks = '';
+        $this->tempStatus = '';
+        $this->tempRegistrationId = null;
+        $this->tempStudentId = null;
+    }
+
+    public function submitStatusWithRemarks()
+    {
+        $this->updateStatus($this->tempRegistrationId, $this->tempStatus, $this->tempStudentId, $this->remarks);
+        $this->closeRemarksModal();
+    }
+
+    public function updateStatus($registrationId, $status, $studentId = null, $remarks = null)
     {
         $teacher = $this->getTeacher();
         if (!$teacher) return;
@@ -117,12 +156,22 @@ class ViewStudents extends Component
             $registration = Registration::find($registrationId);
             if ($registration) {
                 $data = ['status' => $status];
+                
+                if ($remarks !== null) {
+                    $data['remarks'] = $remarks;
+                }
+
                 if ($status === 'approved') {
                      $data['approved_by'] = $approverName;
                 } else {
                      $data['approved_by'] = null;
                 }
                 $registration->update($data);
+                
+                // Refresh modal data if open
+                if ($this->isShowProofModalOpen && $this->selectedStudent && $this->selectedStudent->id == $registration->student_id) {
+                    $this->selectedRegistration = $registration->fresh();
+                }
             }
         } elseif ($studentId && $selectedSemester) {
             $data = [
@@ -130,12 +179,18 @@ class ViewStudents extends Component
                 'semester' => $selectedSemester->semester,
                 'year' => $selectedSemester->year,
                 'status' => $status,
+                'remarks' => $remarks
             ];
             if ($status === 'approved') {
                  $data['approved_by'] = $approverName;
             }
             Registration::create($data);
+
+            // Refresh student data to show the new registration in the main list
+            $this->resetPage();
         }
+
+        $this->dispatch('swal:success', message: 'อัปเดตสถานะการลงทะเบียนเรียบร้อยแล้ว');
     }
 
     public function render()

@@ -233,13 +233,13 @@
                                                      class="absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden" 
                                                      style="display: none;">
                                                     <div class="py-1">
-                                                        <button wire:click="updateStatus({{ $registration->id }}, 'pending')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">
+                                                        <button wire:click="openRemarksModal({{ $registration->id }}, 'pending')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">
                                                             <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> รอตรวจสอบ
                                                         </button>
-                                                        <button wire:click="updateStatus({{ $registration->id }}, 'approved')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50">
+                                                        <button wire:click="openRemarksModal({{ $registration->id }}, 'approved')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50">
                                                             <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> อนุมัติ (Approve)
                                                         </button>
-                                                        <button wire:click="updateStatus({{ $registration->id }}, 'rejected')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                                        <button wire:click="openRemarksModal({{ $registration->id }}, 'rejected')" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50">
                                                             <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span> ปฏิเสธ (Reject)
                                                         </button>
                                                     </div>
@@ -262,13 +262,13 @@
                                                      class="absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden" 
                                                      style="display: none;">
                                                     <div class="py-1">
-                                                        <button wire:click="updateStatus(null, 'pending', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">
+                                                        <button wire:click="openRemarksModal(null, 'pending', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">
                                                             <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> รอตรวจสอบ
                                                         </button>
-                                                        <button wire:click="updateStatus(null, 'approved', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50">
+                                                        <button wire:click="openRemarksModal(null, 'approved', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50">
                                                             <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> อนุมัติ (Approve)
                                                         </button>
-                                                        <button wire:click="updateStatus(null, 'rejected', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                                        <button wire:click="openRemarksModal(null, 'rejected', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50">
                                                             <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span> ปฏิเสธ (Reject)
                                                         </button>
                                                     </div>
@@ -424,25 +424,14 @@
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             @if ($selectedRegistration && $selectedRegistration->status === 'pending')
                                 <button type="button"
-                                        x-on:click="Swal.fire({
-                                            title: 'ยืนยันการอนุมัติ?',
-                                            text: 'คุณต้องการอนุมัติการลงทะเบียนของ {{ $selectedStudent->firstname }} ใช่หรือไม่?',
-                                            icon: 'question',
-                                            showCancelButton: true,
-                                            confirmButtonColor: '#16a34a',
-                                            cancelButtonColor: '#6b7280',
-                                            confirmButtonText: 'ยืนยัน, อนุมัติเลย!',
-                                            cancelButtonText: 'ยกเลิก'
-                                        }).then((result) => {
-                                            if (result.isConfirmed) { $wire.approveRegistration({{ $selectedRegistration->id }}); }
-                                        })"
+                                        wire:click="openRemarksModal({{ $selectedRegistration->id }}, 'approved')"
                                         class="flex-1 sm:flex-none inline-flex justify-center items-center px-4 py-2 bg-green-600 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:border-green-900 focus:ring ring-green-300 disabled:opacity-25 transition ease-in-out duration-150 shadow-lg shadow-green-200">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     อนุมัติ (Approve)
                                 </button>
                                 
                                 <button type="button"
-                                        {{-- Add Reject Logic Here if needed later --}}
+                                        wire:click="openRemarksModal({{ $selectedRegistration->id }}, 'rejected')"
                                         class="flex-1 sm:flex-none inline-flex justify-center items-center px-4 py-2 bg-white border border-red-300 rounded-xl font-bold text-xs text-red-700 uppercase tracking-widest hover:bg-red-50 focus:outline-none focus:ring ring-red-300 disabled:opacity-25 transition ease-in-out duration-150 shadow-sm">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     ปฏิเสธ
@@ -545,6 +534,64 @@
                         </button>
                         <button type="button" wire:click="$set('statusFilter', ''); $set('selectedGroupId', '');" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             ล้างค่า
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Remarks Modal -->
+    @if ($isShowRemarksModalOpen)
+        <div class="fixed z-[100] inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity backdrop-blur-sm" wire:click="closeRemarksModal" aria-hidden="true"></div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-6 py-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                ยืนยันการเปลี่ยนสถานะ (คุณครู)
+                            </h3>
+                            <button wire:click="closeRemarksModal" class="text-gray-400 hover:text-gray-500 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                                <p class="text-sm text-gray-600">สถานะใหม่: 
+                                    <span class="font-bold {{ $tempStatus === 'approved' ? 'text-green-600' : ($tempStatus === 'rejected' ? 'text-red-600' : 'text-yellow-600') }}">
+                                        {{ match ($tempStatus) {
+                                            'pending' => 'รอตรวจสอบ',
+                                            'approved' => 'อนุมัติแล้ว',
+                                            'rejected' => 'ถูกปฏิเสธ',
+                                            default => $tempStatus,
+                                        } }}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">หมายเหตุ (ระบุเหตุผล หรือข้อมูลเพิ่มเติม)</label>
+                                <textarea wire:model="remarks" rows="4" 
+                                    placeholder="เช่น ส่งหลักฐานที่อาจารย์แล้ว, สลิปไม่ชัดเจน..."
+                                    class="w-full border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 text-sm"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse rounded-b-2xl gap-2">
+                        <button type="button" wire:click="submitStatusWithRemarks" 
+                            class="inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm transition-all">
+                            ยืนยัน
+                        </button>
+                        <button type="button" wire:click="closeRemarksModal" 
+                            class="inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm transition-all">
+                            ยกเลิก
                         </button>
                     </div>
                 </div>

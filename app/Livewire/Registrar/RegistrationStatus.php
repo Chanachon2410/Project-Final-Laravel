@@ -26,8 +26,15 @@ class RegistrationStatus extends Component
 
     // Modal properties
     public $isShowProofModalOpen = false;
+    public $isShowRemarksModalOpen = false;
     public $selectedRegistration = null;
     public $selectedStudent = null;
+
+    // Form properties for status update
+    public $remarks = '';
+    public $tempStatus = '';
+    public $tempRegistrationId = null;
+    public $tempStudentId = null;
 
     public function updatingSearch()
     {
@@ -79,7 +86,39 @@ class RegistrationStatus extends Component
         $this->updateStatus($registrationId, 'rejected');
     }
 
-    public function updateStatus($registrationId, $status, $studentId = null)
+    public function openRemarksModal($registrationId, $status, $studentId = null)
+    {
+        $this->tempRegistrationId = $registrationId;
+        $this->tempStatus = $status;
+        $this->tempStudentId = $studentId;
+        
+        // Pre-fill remarks if editing existing registration
+        if ($registrationId) {
+            $reg = Registration::find($registrationId);
+            $this->remarks = $reg->remarks ?? '';
+        } else {
+            $this->remarks = '';
+        }
+
+        $this->isShowRemarksModalOpen = true;
+    }
+
+    public function closeRemarksModal()
+    {
+        $this->isShowRemarksModalOpen = false;
+        $this->remarks = '';
+        $this->tempStatus = '';
+        $this->tempRegistrationId = null;
+        $this->tempStudentId = null;
+    }
+
+    public function submitStatusWithRemarks()
+    {
+        $this->updateStatus($this->tempRegistrationId, $this->tempStatus, $this->tempStudentId, $this->remarks);
+        $this->closeRemarksModal();
+    }
+
+    public function updateStatus($registrationId, $status, $studentId = null, $remarks = null)
     {
         $registration = null;
 
@@ -111,6 +150,11 @@ class RegistrationStatus extends Component
         if ($registration) {
             $data = ['status' => $status];
             
+            // Only update remarks if provided (or if we want to allow clearing them)
+            if ($remarks !== null) {
+                $data['remarks'] = $remarks;
+            }
+
             if ($status === 'approved') {
                 $user = auth()->user();
                 $approverName = 'ฝ่ายทะเบียน (' . ($user->username ?? $user->name) . ')';
@@ -123,7 +167,7 @@ class RegistrationStatus extends Component
             $registration->save();
             
             // Refresh modal data if open
-            if ($this->isShowProofModalOpen && $this->selectedRegistration && $this->selectedRegistration->id == $registration->id) {
+            if ($this->isShowProofModalOpen && $this->selectedStudent && $this->selectedStudent->id == $registration->student_id) {
                 $this->selectedRegistration = $registration->fresh();
             }
 
