@@ -98,12 +98,22 @@ class ManageRegistrars extends Component
 
     public function delete($id)
     {
-        $this->dispatch('swal:confirm', id: $id, message: 'คุณแน่ใจหรือไม่ที่จะลบเจ้าหน้าที่รายนี้?');
+        $user = User::findOrFail($id);
+        $this->dispatch('swal:confirm', 
+            id: $id, 
+            message: 'ยืนยันการลบเจ้าหน้าที่',
+            text: 'คุณแน่ใจหรือไม่ที่จะลบเจ้าหน้าที่: ' . $user->username . '?'
+        );
     }
 
     #[On('delete-confirmed')]
     public function confirmDelete($id)
     {
+        // Extract ID if it's an array (handling Livewire's dispatch behavior)
+        if (is_array($id)) {
+            $id = $id['id'] ?? $id[0] ?? null;
+        }
+
         $user = User::find($id);
         if ($user) {
             $user->delete();

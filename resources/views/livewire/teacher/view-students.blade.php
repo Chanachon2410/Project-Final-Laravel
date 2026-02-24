@@ -154,7 +154,7 @@
                 </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 p-6">
+            <div class="bg-white shadow-sm rounded-2xl border border-gray-100 p-6">
                 <!-- PerPage Control -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
@@ -172,7 +172,7 @@
                 </div>
 
                 <!-- Modern Table -->
-                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                <div class="overflow-visible rounded-xl border border-gray-100">
                     <table class="min-w-full divide-y divide-gray-100">
                         <thead>
                             <tr class="bg-gray-50/50">
@@ -249,9 +249,31 @@
                                                 <div class="text-[10px] text-gray-400 mt-1">โดย: {{ $registration->approved_by }}</div>
                                             @endif
                                         @else
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
-                                                ยังไม่ลงทะเบียน
-                                            </span>
+                                            <div class="relative inline-block text-left" x-data="{ open: false }">
+                                                <button @click="open = !open" type="button"
+                                                    class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-bold border transition-all duration-200 bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
+                                                    ยังไม่ลงทะเบียน
+                                                    <svg class="ml-1 -mr-0.5 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                </button>
+
+                                                <!-- Dropdown Menu -->
+                                                <div x-show="open" @click.away="open = false" 
+                                                     class="absolute right-0 mt-2 w-44 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden" 
+                                                     style="display: none;">
+                                                    <div class="py-1">
+                                                        <button wire:click="updateStatus(null, 'pending', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50">
+                                                            <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> รอตรวจสอบ
+                                                        </button>
+                                                        <button wire:click="updateStatus(null, 'approved', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50">
+                                                            <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> อนุมัติ (Approve)
+                                                        </button>
+                                                        <button wire:click="updateStatus(null, 'rejected', {{ $student->id }})" @click="open = false" class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                                            <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span> ปฏิเสธ (Reject)
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center">

@@ -92,4 +92,50 @@
             &copy; {{ date('Y') }} ระบบลงทะเบียนเรียนออนไลน์
         </p>
     </div>
+
+    @if (session('status'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let statusMessage = '{{ session('status') }}';
+                
+                // แปลข้อความสถานะเป็นภาษาไทย
+                if (statusMessage === 'Your password has been reset.') {
+                    statusMessage = 'รีเซ็ตรหัสผ่านของคุณเรียบร้อยแล้ว';
+                } else if (statusMessage === 'We have emailed your password reset link!') {
+                    statusMessage = 'เราได้ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว';
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สำเร็จ',
+                    text: statusMessage,
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            });
+        </script>
+    @endif
+
+    @if ($errors->any())
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let errorMessage = '{{ $errors->first() }}';
+                
+                // แปลข้อความผิดพลาดเป็นภาษาไทย
+                if (errorMessage === 'These credentials do not match our records.') {
+                    errorMessage = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+                } else if (errorMessage.includes('throttle')) {
+                    errorMessage = 'คุณพยายามเข้าระบบบ่อยเกินไป กรุณาลองใหม่ในภายหลัง';
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เข้าสู่ระบบไม่สำเร็จ',
+                    text: errorMessage,
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#4f46e5',
+                });
+            });
+        </script>
+    @endif
 </x-guest-layout>

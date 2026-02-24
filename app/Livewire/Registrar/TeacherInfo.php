@@ -32,11 +32,9 @@ class TeacherInfo extends Component
     public $isViewModalOpen = false;
     public $isStudentListModalOpen = false;
     public $isManageModalOpen = false;
-    public $isDeleteModalOpen = false;
     
     public $selectedTeacher = null;
     public $studentsInGroup = [];
-    public $teacherIdToDelete = null;
 
     // Form Fields
     public $teacherId;
@@ -181,33 +179,22 @@ class TeacherInfo extends Component
         });
 
         $this->closeManageModal();
-        $this->dispatch('alert', type: 'success', message: $isEdit ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ');
+        $this->dispatch('swal:success', message: $isEdit ? 'แก้ไขข้อมูลสำเร็จ' : 'เพิ่มข้อมูลสำเร็จ');
     }
 
-    public function confirmDelete($id)
+    public function deleteTeacher($id)
     {
-        $this->teacherIdToDelete = $id;
-        $this->isDeleteModalOpen = true;
-    }
-
-    public function closeDeleteModal()
-    {
-        $this->isDeleteModalOpen = false;
-        $this->teacherIdToDelete = null;
-    }
-
-    public function deleteTeacher()
-    {
-        if ($this->teacherIdToDelete) {
-            $teacher = Teacher::find($this->teacherIdToDelete);
-            if ($teacher) {
-                // Optional: Delete associated user?
+        $teacher = Teacher::find($id);
+        if ($teacher) {
+            // Optional: Delete associated user?
+            if ($teacher->user) {
                 // $teacher->user->delete(); 
-                $teacher->delete();
             }
+            $teacher->delete();
+            $this->dispatch('swal:success', message: 'ลบข้อมูลสำเร็จ');
+        } else {
+            $this->dispatch('swal:error', message: 'ไม่พบข้อมูลครู');
         }
-        $this->closeDeleteModal();
-        $this->dispatch('alert', type: 'success', message: 'ลบข้อมูลสำเร็จ');
     }
 
     public function viewTeacher($id)
